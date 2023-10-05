@@ -11,14 +11,24 @@ public class Main {
 
     public static void main(String[] args) {
 
+        try{
+            products.add(new Product("bana","34,5","fruit","africa yellow"));
+            products.add(new Product("banana","23,6","fruit","africa "));
+            products.add(new Product("mango","456,3","vegetable","red "));
+            products.add(new Product("tomato","23,78","vegetable","red chili"));
+            products.add(new Product("blueberry","75,1","other","blue berry"));
+            products.add(new Product("lingonberry","34,5","other","red Sweden"));
+        }catch (Exception exp){
+            System.err.println(exp.getMessage());
+        }
 
         boolean exit = false;
 
         showGreetings();
 
         do {
+            showMainMenu();
             try {
-                showMainMenu();
                 String customerInput = input.nextLine().trim().toLowerCase();
                 controlMenuInput(customerInput);
                 switch (customerInput) {
@@ -86,12 +96,7 @@ public class Main {
         System.out.println("\n9. To Exit the program");
     }
 
-    public static void showAllProducts() {
-        //checking if array is not empty
-        if (products.isEmpty()) {
-            System.err.println("You didn't add any products yet");
-            return;
-        }
+    public static void showAllProducts() throws Exception{
         //print out all products
         printProducts();
     }
@@ -150,35 +155,37 @@ public class Main {
 
     }
 
-    public static void calculatePurchase() {
+    public static void calculatePurchase() throws Exception{
         //initial values
         String customerInput;
         double weight;
         double price;
         double result;
         int index;
-
+        if(products.isEmpty())throw new Exception("Product list is empty");
         do {
-            try {
-                //geting a product's index that customer want to work with
-                index = findProduct();
-                //if customer want to cancel
-                if (index == -1) {
+            do {
+                try {
+                    //geting a product's index that customer want to work with
+                    index = findProduct();
+                    //if customer want to cancel
+                    if (index == -1) {
+                        return;
+                    }
+                    //if element is found print element
+                    System.out.println("Here is your product:");
+                    products.get(index).print();
+                    System.out.println();
+                    //get product's price
+                    price = products.get(index).getPrice();
+                    break;
+                } catch (IndexOutOfBoundsException exp) {
+                    System.err.println(exp.getMessage());
                     return;
+                } catch (Exception exp) {
+                    System.err.println(exp.getMessage());
                 }
-                //if element is found print element
-                System.out.println("Here is your product:");
-                products.get(index).print();
-                System.out.println();
-                //get product's price
-                price = products.get(index).getPrice();
-            } catch (IndexOutOfBoundsException exp) {
-                System.err.println(exp.getMessage());
-                return;
-            } catch (Exception exp) {
-                System.err.println(exp.getMessage());
-                continue;
-            }
+            }while(true);
             do {
 
                 try {
@@ -219,7 +226,10 @@ public class Main {
                 }
                 System.out.println("Here is your product:");
                 break;
-            } catch (Exception exp) {
+            }catch (IndexOutOfBoundsException exp){
+                System.err.println(exp.getMessage());
+                return;
+            }catch (Exception exp) {
                 System.err.println(exp.getMessage());
                 continue;
             }
@@ -296,10 +306,11 @@ public class Main {
         String newType;
         int choise;
         do {
-            try {
+
                 System.out.println("Choose a new type or or write 'BACK' to cancel");
                 printTypes();
                 newType = input.nextLine();
+            try {
                 //check if customer want to cancel
                 if (isCancel(newType)) return;
 
@@ -359,8 +370,9 @@ public class Main {
         } while (true);
     }
 
-    private static void deleteProduct() {
+    private static void deleteProduct() throws Exception{
         int index;
+        //if (products.isEmpty()) throw new Exception("List of products is empty is empty");
         do {
             try {
                 index = findProduct();
@@ -373,8 +385,8 @@ public class Main {
                 return;
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
-                continue;
             }
+            return;
         } while (true);
 
 
@@ -417,11 +429,12 @@ public class Main {
 
                     //parse string input to integer
                     choise = Integer.parseInt(customerInput);
+                    if(choise < 1 || choise >Product.getProductTypes().size()) throw new Exception("Value not from list");
                     //get chosen type
                     type = Product.getProductTypes().get(choise - 1);
 
                 } catch (Exception exp) {
-                    System.err.println("Not a value of list , try again");
+                    System.err.println(exp.getMessage());
                     continue;
                 }
 
@@ -543,12 +556,9 @@ public class Main {
 
     }
 
-    public static void printProducts() {
+    public static void printProducts() throws Exception{
         //check if customer didn't add products at all yet
-        if (products.isEmpty()) {
-            System.err.println("There are no products yet");
-            return;
-        }
+        if (products.isEmpty()) throw new Exception("Productlist is empty");
         //print all products
         for (Product product : products) {
             product.print();
@@ -556,13 +566,11 @@ public class Main {
         return;
     }
 
-    public static void printProducts(String type) {
+    public static void printProducts(String type) throws Exception{
         boolean isEmpty = true;
         //check if customer didn't add products at all yet
-        if (products.isEmpty()) {
-            System.err.println("There are no products yet");
-            return;
-        }
+        if (products.isEmpty()) throw new Exception("There are no products yet");
+
         //print products of type
         for (Product product : products) {
             if (product.getType().equals(type)) {
@@ -572,10 +580,7 @@ public class Main {
 
         }
         //check if don't have products of such type
-        if (isEmpty) {
-            System.err.println("There are no products of such type yet");
-            return;
-        }
+        if (isEmpty) throw new Exception("There are no products of such type yet");
     }
 
     public static int isAlreadyExist(String name) throws Exception {
@@ -595,11 +600,12 @@ public class Main {
     }
 
     public static boolean isCancel(String input) {
-        String submit = "back";
+        final String submit = "back";
         return input.equals(submit);
     }
 
     public static void controlMenuInput(String customerInput) throws Exception {
+
 
         if (customerInput.isEmpty()) throw new Exception("Input can't be empty ,try again");
 
@@ -629,6 +635,7 @@ public class Main {
     public static void searchProducts() throws Exception {
         boolean isfound = false;
         String searchable = "";
+        if(products.isEmpty())throw new Exception("Product list is empty");
         try {
             System.out.println("What product(s) are you searching? Enter a name or 'BACK' to cancel: ");
             searchable = input.nextLine().trim().toLowerCase();
