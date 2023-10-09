@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 
-
 public class Main {
     static Scanner input = new Scanner(System.in);
 
@@ -11,14 +10,14 @@ public class Main {
 
     public static void main(String[] args) {
 
-        try{
-            products.add(new Product("bana","34,5","fruit","africa yellow"));
-            products.add(new Product("banana","23,6","fruit","africa "));
-            products.add(new Product("mango","456,3","vegetable","red "));
-            products.add(new Product("tomato","23,78","vegetable","red chili"));
-            products.add(new Product("blueberry","75,1","other","blue berry"));
-            products.add(new Product("lingonberry","34,5","other","red Sweden"));
-        }catch (Exception exp){
+        try {
+            products.add(new Product("bana", "34,0", "fruit", "africa yellow"));
+            products.add(new Product("banana", "23,6", "fruit", "africa "));
+            products.add(new Product("mango", "456,3", "vegetable", "red "));
+            products.add(new Product("tomato", "23,78", "vegetable", "red chili"));
+            products.add(new Product("blueberry", "75,1", "other", "blue berry"));
+            products.add(new Product("lingonberry", "34,5", "other", "red Sweden"));
+        } catch (Exception exp) {
             System.err.println(exp.getMessage());
         }
 
@@ -26,7 +25,7 @@ public class Main {
 
         showGreetings();
 
-        do {
+        while (!exit){
             showMainMenu();
             try {
                 String customerInput = input.nextLine().trim().toLowerCase();
@@ -44,17 +43,18 @@ public class Main {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (!exit);
+        }
 
         System.out.println("THANK YOU FOR USING OUR PROGRAM");
     }
 
-    public static void showGreetings(){
+    public static void showGreetings() {
         final String ANSI_GREEN = "\u001B[32m";
         final String ANSI_RESET = "\u001B[0m";
-        System.out.println(ANSI_GREEN +"Hi and welcome to the Scales program!");
+        System.out.println(ANSI_GREEN + "Hi and welcome to the Scales program!");
         System.out.println("Now you will get some alternativs for actions :" + ANSI_RESET);
     }
+
     private static int findProduct() throws Exception, IndexOutOfBoundsException {
         boolean isfound = false;
         int index = -1;
@@ -96,7 +96,7 @@ public class Main {
         System.out.println("\n9. To Exit the program");
     }
 
-    public static void showAllProducts() throws Exception{
+    public static void showAllProducts() throws Exception {
         //print out all products
         printProducts();
     }
@@ -155,59 +155,58 @@ public class Main {
 
     }
 
-    public static void calculatePurchase() throws Exception{
+    public static void calculatePurchase() throws Exception {
         //initial values
         String customerInput;
         double weight;
         double price;
         double result;
         int index;
-        if(products.isEmpty())throw new Exception("Product list is empty");
-        do {
-            do {
-                try {
-                    //geting a product's index that customer want to work with
-                    index = findProduct();
-                    //if customer want to cancel
-                    if (index == -1) {
-                        return;
-                    }
-                    //if element is found print element
-                    System.out.println("Here is your product:");
-                    products.get(index).print();
-                    System.out.println();
-                    //get product's price
-                    price = products.get(index).getPrice();
-                    break;
-                } catch (IndexOutOfBoundsException exp) {
-                    System.err.println(exp.getMessage());
-                    return;
-                } catch (Exception exp) {
-                    System.err.println(exp.getMessage());
-                }
-            }while(true);
-            do {
+        if (products.isEmpty()) throw new Exception("Product list is empty");
 
-                try {
-                    //ask how much want customer buy
-                    System.out.println("How many kilogram do you want to buy? write 'BACK' to cancel");
-                    customerInput = input.nextLine().trim().toLowerCase();
-                    //check if customer want cancel and go back to previous menu
-                    if (isCancel(customerInput)) return;
-                    //check if customers input is correct( price validation is OK for that)
-
-                    Product.priceValidation(customerInput);
-                    weight = Double.parseDouble(Product.formatPrice(customerInput));
-                    //calculate price of purchase
-                    result = price * weight;
-                    System.out.printf("This product will cost you %10.2f SEK\n", result);
+        while (true) {
+            try {
+                //geting a product's index that customer want to work with
+                index = findProduct();
+                //if customer want to cancel
+                if (index == -1) {
                     return;
-                } catch (Exception exp) {
-                    System.err.println(exp.getMessage());
-                    continue;
                 }
-            } while (true);
-        } while (true);
+                //if element is found print element
+                System.out.println("Here is your product:");
+                products.get(index).print();
+                System.out.println();
+                //get product's price
+                price = products.get(index).getPrice();
+                break;
+            } catch (IndexOutOfBoundsException exp) {
+                System.err.println(exp.getMessage());
+                return;
+            } catch (Exception exp) {
+                System.err.println(exp.getMessage());
+            }
+        }
+        while (true) {
+            try {
+                //ask how much want customer buy
+                System.out.println("How many kilogram do you want to buy? write 'BACK' to cancel");
+                customerInput = input.nextLine().trim().toLowerCase();
+                //check if customer want cancel and go back to previous menu
+                if (isCancel(customerInput)) return;
+                //check if customers input is correct( price validation is OK for that)
+
+                Product.priceValidation(customerInput);
+                weight = Double.parseDouble(Product.formatPrice(customerInput));
+                //calculate price of purchase
+                result = price * weight;
+                System.out.printf("This product will cost you %10.2f SEK\n", result);
+                return;
+            } catch (Exception exp) {
+                System.err.println(exp.getMessage());
+                continue;
+            }
+        }
+
     }
 
 
@@ -215,7 +214,7 @@ public class Main {
         String customerInput;
 
         int index = 0;
-        do {
+        while (true) {
             try {
                 //geting a product's index that customer want to work with
                 index = findProduct();
@@ -226,17 +225,17 @@ public class Main {
                 }
                 System.out.println("Here is your product:");
                 break;
-            }catch (IndexOutOfBoundsException exp){
+            } catch (IndexOutOfBoundsException exp) {
                 System.err.println(exp.getMessage());
                 return;
-            }catch (Exception exp) {
+            } catch (Exception exp) {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (true);
+        }
 
 
-        do {
+        while (true){
             products.get(index).printAdmin();
             System.out.println();
             try {
@@ -277,13 +276,13 @@ public class Main {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (true);
+        }
     }
 
     private static void changeDescription(int index) {
         String newDescription;
 
-        do {
+        while (true){
             try {
                 System.out.println("Choose a new Description or or write 'BACK' to cancel");
                 newDescription = input.nextLine();
@@ -298,18 +297,18 @@ public class Main {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (true);
+        }
 
     }
 
     public static void changeType(int index) {
         String newType;
         int choise;
-        do {
+        while (true){
 
-                System.out.println("Choose a new type or or write 'BACK' to cancel");
-                printTypes();
-                newType = input.nextLine();
+            System.out.println("Choose a new type or or write 'BACK' to cancel");
+            printTypes();
+            newType = input.nextLine();
             try {
                 //check if customer want to cancel
                 if (isCancel(newType)) return;
@@ -332,7 +331,7 @@ public class Main {
                 System.err.println(exc.getMessage());
                 continue;
             }
-        } while (true);
+        }
 
     }
 
@@ -356,7 +355,7 @@ public class Main {
 
     public static void changePrice(int index) {
         String newPrice;
-        do {
+        while (true){
             try {
                 System.out.println("Write a new price or or write 'BACK' to cancel");
                 newPrice = input.nextLine();
@@ -367,13 +366,13 @@ public class Main {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (true);
+        }
     }
 
-    private static void deleteProduct() throws Exception{
+    private static void deleteProduct() throws Exception {
         int index;
         //if (products.isEmpty()) throw new Exception("List of products is empty is empty");
-        do {
+        while(true){
             try {
                 index = findProduct();
                 //if customer want to cancel
@@ -386,10 +385,7 @@ public class Main {
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
             }
-            return;
-        } while (true);
-
-
+        }
     }
 
     public static void printTypes() {
@@ -411,8 +407,8 @@ public class Main {
         Product result;
         int choise;
 
-        do {
-            do {
+        while (true){
+            while (true){
                 try {
                     System.out.println("What type of product you want to add, choose from: ");
 
@@ -429,7 +425,8 @@ public class Main {
 
                     //parse string input to integer
                     choise = Integer.parseInt(customerInput);
-                    if(choise < 1 || choise >Product.getProductTypes().size()) throw new Exception("Value not from list");
+                    if (choise < 1 || choise > Product.getProductTypes().size())
+                        throw new Exception("Value not from list");
                     //get chosen type
                     type = Product.getProductTypes().get(choise - 1);
 
@@ -440,10 +437,10 @@ public class Main {
 
                 break;
 
-            } while (true);
+            }
 
 
-            do {
+            while (true){
                 try {
                     System.out.println("Enter a name of product or BACK to cancel");
                     System.out.println("Name can contain only letters");
@@ -464,11 +461,11 @@ public class Main {
                     continue;
                 }
                 break;
-            } while (true);
+            }
 
 
             //input of price
-            do {
+            while (true){
                 try {
                     System.out.println("Enter a price (#.##) of product or BACK to cancel");
                     customerInput = input.nextLine().trim().toLowerCase();
@@ -483,7 +480,7 @@ public class Main {
                 price = Product.formatPrice(customerInput);
                 break;
 
-            } while (true);
+            }
 
 
             //if customer want to add a description
@@ -492,7 +489,7 @@ public class Main {
             if (customerInput.equals("yes")) wantAddDescription = true;
             //add description
             if (wantAddDescription) {
-                do {
+                while (true){
                     try {
                         System.out.println("Enter a description to product or write 'BACK' to cancel");
                         customerInput = input.nextLine().trim().toLowerCase();
@@ -509,8 +506,7 @@ public class Main {
                     description = customerInput;
                     //stop the loop
                     break;
-
-                } while (true);
+                }
             }
             //try to create a product
             try {
@@ -525,12 +521,11 @@ public class Main {
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
             }
-        } while (true);
-
+        }
     }
 
     public static void showTypeProducts() {
-        do {
+        while (true){
             try {
                 System.out.println("Press : ");
                 System.out.println("1. If you want to print Fruits");
@@ -552,11 +547,11 @@ public class Main {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (true);
+        }
 
     }
 
-    public static void printProducts() throws Exception{
+    public static void printProducts() throws Exception {
         //check if customer didn't add products at all yet
         if (products.isEmpty()) throw new Exception("Productlist is empty");
         //print all products
@@ -566,7 +561,7 @@ public class Main {
         return;
     }
 
-    public static void printProducts(String type) throws Exception{
+    public static void printProducts(String type) throws Exception {
         boolean isEmpty = true;
         //check if customer didn't add products at all yet
         if (products.isEmpty()) throw new Exception("There are no products yet");
@@ -635,7 +630,7 @@ public class Main {
     public static void searchProducts() throws Exception {
         boolean isfound = false;
         String searchable = "";
-        if(products.isEmpty())throw new Exception("Product list is empty");
+        if (products.isEmpty()) throw new Exception("Product list is empty");
         try {
             System.out.println("What product(s) are you searching? Enter a name or 'BACK' to cancel: ");
             searchable = input.nextLine().trim().toLowerCase();
@@ -645,9 +640,9 @@ public class Main {
             //check if input is empty
             Product.nameValidating(searchable);
 
-            for (int i = 0; i < products.size(); i++) {
-                if (products.get(i).getName().contains(searchable) || products.get(i).getDescription().contains(searchable)) {
-                    products.get(i).print();
+            for (Product product : products) {
+                if (product.getName().contains(searchable) || product.getDescription().contains(searchable)) {
+                    product.print();
                     isfound = true;
                 }
             }

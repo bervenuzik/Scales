@@ -52,12 +52,12 @@ public class Product{
     }
 
     public Product(String name, String prise) throws Exception {
-        this(name, prise, "other");
+        this(name, prise, "other","");
 
     }
 
     public Product(String name) throws Exception {
-        this(name, "0.00", "other");
+        this(name, "0.00", "other","");
 
     }
 
@@ -82,13 +82,13 @@ public class Product{
 
     }
 
-    public static boolean nameValidating(String name) throws Exception {
+    public static boolean nameValidating(String name) throws IllegalArgumentException {
         String validatedName = name.toLowerCase().trim();
-        if (validatedName.isEmpty()) throw new Exception("name can't be empty");
+        if (validatedName.isEmpty()) throw new IllegalArgumentException("name can't be empty");
         //checking if any of chars in name is not a letter
         for (char letter : validatedName.toCharArray()) {
             if (name.isEmpty() || (letter < 97 && letter != 32) || letter > 122) {
-                throw new Exception("wrong input of name, must contain only letters and spaces");
+                throw new IllegalArgumentException("wrong input of name, must contain only letters and spaces");
             }
         }
         return true;
@@ -115,7 +115,7 @@ public class Product{
 
     }
 
-    public static void priceValidation(String price) throws Exception {
+    public static void priceValidation(String price) throws IllegalArgumentException {
         try {
             if (price.isEmpty()) throw new IllegalArgumentException("Input must not be empty");
             double priceDouble;
@@ -123,7 +123,7 @@ public class Product{
             priceDouble = Double.parseDouble(price);
             if ((priceDouble <= 0)) throw new IllegalArgumentException("Price must be more then 0");
         } catch (NumberFormatException exp) {
-            throw new Exception("Wrong format. Price can't contain letters");
+            throw new IllegalArgumentException("Wrong format. Price can't contain letters");
         }
 
     }
@@ -160,20 +160,14 @@ public class Product{
 
     @Override
     public String toString() {
-        return "Product " +
-                "name='" + name + '\'' +
-                ", price=" + price +
-                ", type=" + type
-                ;
-    }
-
-    public void print() {
-        //console color settings
         final String ANSI_YELLOW = "\u001B[33m";
         final String ANSI_RESET = "\u001B[0m";
 
-        String format = ANSI_YELLOW + " type: %-12s\t Name: %-25s\t Price: %-7.2f%n" + ANSI_RESET;
-        System.out.printf(format, type, name, price, description);
+        return  String.format(ANSI_YELLOW + " type: %-12s\t Name: %-25s\t Price: %-7.2f%n" + ANSI_RESET,type, name, price);
+    }
+
+    public void print() {
+        System.out.printf(toString());
     }
 
     public void printAdmin() {
