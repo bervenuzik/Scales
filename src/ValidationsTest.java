@@ -13,13 +13,13 @@ class ValidationsTest {
         assertThrows(IllegalArgumentException.class , ()->Product.nameValidating(""));
     }
     @Test
-    void nameValidatingSrtingWithNumber() {
+    void nameValidatingSortingWithNumber() {
         assertThrows(IllegalArgumentException.class , ()->Product.nameValidating("name2 name"));
         assertThrows(IllegalArgumentException.class , ()->Product.nameValidating("name% name"));
     }
 
     @Test
-    void descriptionValidatingIlligalSymbols() {
+    void descriptionValidatingIllegalSymbols() {
         assertThrows(IllegalArgumentException.class , ()->Product.descriptionValidating("name2 name"));
         assertThrows(IllegalArgumentException.class , ()->Product.descriptionValidating("name% name"));
     }

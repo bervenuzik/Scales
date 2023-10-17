@@ -170,6 +170,7 @@ public class Product{
         System.out.printf(toString());
     }
 
+
     public void printAdmin() {
         final String ANSI_YELLOW = "\u001B[33m";
         final String ANSI_RESET = "\u001B[0m";

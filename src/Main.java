@@ -103,11 +103,14 @@ public class Main {
 
     public static void administrationMode() {
         //initial values
+        final String ANSI_GREEN = "\u001B[32m";
+        final String ANSI_RESET = "\u001B[0m";
         boolean isAdministrator = false;
         String customerInput;
-        int tryAmount = 0;
+        int tryAmount = 3;
 
-        System.out.println("Write in a PASSWORD, you have 3 tries: ");
+
+       System.out.println("Write in a PASSWORD, you have 3 tries: ");
 
 
         //checking if customer is not an administrator
@@ -119,15 +122,17 @@ public class Main {
                 System.out.println("ADMINISTRATION MODE ON");
                 isAdministrator = true;
             } else { //otherwise show warning and
-                tryAmount++;
+                tryAmount--;
                 //if tries more then 3 back to the menu
-                if (tryAmount == 3) break;
+                if (tryAmount == 0) break;
                 System.err.println("WRONG PASSWORD, TRY AGAIN :");
             }
         }
 
         // checkin if customer is administrator
         while (isAdministrator) {
+
+            System.out.print(ANSI_GREEN);
             try {
                 showInstructions();
                 //show a menu
@@ -139,7 +144,7 @@ public class Main {
                 //take customer's input
                 customerInput = input.nextLine().trim().toLowerCase();
                 //if customer wrote back , close administration mode. Go back to previous menu
-                if (isCancel(customerInput)) break;
+                if (isCancel(customerInput)) {System.out.print(ANSI_RESET);break;}
                 controlMenuInput(customerInput);
                 switch (customerInput) {
                     case "1" -> addProduct();
@@ -610,8 +615,7 @@ public class Main {
     }
 
     public static void showInstructions() {
-        final String ANSI_GREEN = "\u001B[32m";
-        final String ANSI_RESET = "\u001B[0m";
+
         String[] instractions = {
                 "Any input can't be empty",
                 "Price can contain oly digits and one point",
@@ -619,9 +623,9 @@ public class Main {
                 "Description must contain only letters and spaces",
         };
         System.out.println();
-        System.out.println(ANSI_GREEN + "Check an follow instructions to use ADMINISTRATION_MODE" + ANSI_RESET);
+        System.out.println("Check an follow instructions to use ADMINISTRATION_MODE" );
         for (int i = 0; i < instractions.length; i++) {
-            System.out.println(ANSI_GREEN + (i + 1) + ". " + instractions[i] + ANSI_RESET);
+            System.out.println((i + 1) + ". " + instractions[i]);
         }
         System.out.println();
     }
