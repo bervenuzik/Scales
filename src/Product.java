@@ -7,16 +7,32 @@ public class Product{
 
     private static ArrayList<String> productTypes = new ArrayList<>();
 
-    static {
-        productTypes.add("fruit");
-        productTypes.add("vegetable");
-        productTypes.add("other");
+    private static enum PurchaseTypes {
+        KILO,
+        PIECE,
     }
 
     private String name;
     private double price;
     private String type;
     private String description;
+    private int discount;
+    private double[] promotion;
+
+    public PurchaseTypes getPurchaseType() {
+        return purchaseType;
+    }
+
+    public void setPurchaseType(PurchaseTypes purchaseType) {
+        this.purchaseType = purchaseType;
+    }
+
+    private PurchaseTypes purchaseType;
+    static {
+        productTypes.add("fruit");
+        productTypes.add("vegetable");
+        productTypes.add("other");
+    }
 
     public String getDescription() {
         return description;
@@ -40,14 +56,14 @@ public class Product{
         this.price = Double.parseDouble((price.trim()));
         this.type = type;
         this.description = description.trim().toLowerCase();
-
-
+        this.discount = 0;
+        this.promotion = new double[]{0.0 , 0.0};
+        this.purchaseType = PurchaseTypes.KILO;
     }
 
     public Product(String name, String price, String type) throws Exception {
 
         this(name, price, type, "");
-
 
     }
 
@@ -72,7 +88,27 @@ public class Product{
     }
 
     public double getPrice() {
-        return price;
+
+        return this.price;
+
+
+
+    }
+    public double calculatePrice ( double customerAmount ){
+
+
+
+        if (discount != 0 && promotion[0] == 0 && promotion[1] == 0){
+            return this.price * (double)discount/100;
+        }
+        if(discount == 0 && promotion[0] != 0 && promotion[1] != 0){
+            if (customerAmount == promotion[0]) return promotion[1];
+            if (customerAmount % promotion[0] == 0) return promotion[1] * customerAmount;
+            if (customerAmount % promotion[0] > 0) return  Math.floor(customerAmount / promotion[0] + (this.price * customerAmount % promotion[0]));
+            if (customerAmount % promotion[0] == promotion[0]) return customerAmount * this.price;
+        }
+
+        return this.price * customerAmount;
     }
 
     public void setPrice(String price) throws Exception {
@@ -128,15 +164,81 @@ public class Product{
 
     }
 
-   //kollar om priset innehåller ',' symbol och ersätter den mot '.'
-    public static String formatPrice(String price) {
+    public static void discountValidation(String discount) throws IllegalArgumentException {
+        int integerCheck;
+        try {
+            if (discount.isEmpty()) throw new IllegalArgumentException("Input must not be empty");
+            integerCheck = Integer.parseInt(discount);
+            if ((integerCheck < 0)) throw new IllegalArgumentException("Discount must be more or equal 0");
+        } catch (NumberFormatException exp) {
+            throw new IllegalArgumentException("Wrong format. Discount can't contain letters and must be an integer");
+        }
+
+    }
+
+    public static void promotionValidation(String[] promotion , double currentPrice) throws IllegalArgumentException {
+        String quantity  = promotion[0];
+        String promotionalPrice = promotion[1];
+        double quantityDouble;
+        double promotionalpriceDouble;
+
+        try {
+
+                if (quantity.isEmpty()) throw new IllegalArgumentException("Quantity must not be empty");
+                if (promotionalPrice.isEmpty()) throw new IllegalArgumentException("Promotional price must not be empty");
+
+                quantityDouble = Double.parseDouble(quantity);
+                if ((quantityDouble <= 0)) throw new IllegalArgumentException("Quantity must be more then 0");
+
+                promotionalpriceDouble = Double.parseDouble(promotionalPrice);
+                if ((promotionalpriceDouble < 0)) throw new IllegalArgumentException("Promotional price  must be more or equal 0");
+                if(promotionalpriceDouble < (currentPrice * quantityDouble)) throw new IllegalArgumentException("Promotional price must be less then standard price for the same quantity");
+
+
+        } catch (NumberFormatException exp) {
+            throw new IllegalArgumentException("Wrong format. Discount can contain only integer digits");
+        }
+
+    }
+    public  int getDiscount (){
+        return this.discount;
+    }
+    public  double[] getPromotion (){
+        return this.promotion;
+    }
+    public void setDiscount(String discount) throws  IllegalArgumentException{
+        int discountInteger;
+        discountValidation(discount);
+        discountInteger = Integer.parseInt(discount);
+        this.discount = discountInteger;
+        if(this.promotion[0] > 0 || this.promotion[1] > 0 ) this.clearPromotion();
+
+    }
+
+    public void setPromotion(String[] newPromotion, double currentPrice) throws IllegalArgumentException{
+
+        promotionValidation(newPromotion , currentPrice);
+
+        this.promotion[0] = Double.parseDouble(newPromotion[0]);
+        this.promotion[1] = Double.parseDouble(newPromotion[1]);
+        if(this.discount > 0) this.clearDiscount();
+
+    }
+    private void clearPromotion (){
+        this.promotion[0] = 0.0;
+        this.promotion[1] = 0.0;
+    }
+    private void clearDiscount(){
+        this.discount = 0;
+    }
+
+    public static String formatPrice(String price) { //kollar om priset innehåller ',' symbol och ersätter den mot '.'
         price = price.trim();
         char[] priceDecimalSymbol = price.toCharArray();
         for (int i = 0; i < priceDecimalSymbol.length; i++) {
-            if (priceDecimalSymbol[i] == ',') {
-                priceDecimalSymbol[i] = '.';
-            }
+            if (priceDecimalSymbol[i] == ',') priceDecimalSymbol[i] = '.';
         }
+
         price = "";
 
         for (char symbol : priceDecimalSymbol) {
@@ -178,4 +280,6 @@ public class Product{
         String format = ANSI_YELLOW + " type: %-12s\t Name: %-25s\t Price: %-7.2f Description: %-20s\t%n" + ANSI_RESET;
         System.out.printf(format, type, name, price, description);
     }
+
+
 }

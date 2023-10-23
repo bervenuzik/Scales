@@ -34,7 +34,7 @@ public class Main {
                     case "1" -> showAllProducts();
                     case "2" -> showTypeProducts();
                     case "3" -> searchProducts();
-                    case "4" -> calculatePurchase();
+                    case "4" -> doPurchase();
                     case "5" -> administrationMode();
                     case "9" -> exit = true;
                     default -> System.err.println("Wrong input try again");
@@ -160,7 +160,7 @@ public class Main {
 
     }
 
-    public static void calculatePurchase() throws Exception {
+    public static void doPurchase() throws Exception {
         //initial values
         String customerInput;
         double weight;
@@ -194,7 +194,7 @@ public class Main {
         while (true) {
             try {
                 //ask how much want customer buy
-                System.out.println("How many kilogram do you want to buy? write 'BACK' to cancel");
+                System.out.println("How many " + products.get(index).getPurchaseType() +" do you want to buy? write 'BACK' to cancel");
                 customerInput = input.nextLine().trim().toLowerCase();
                 //check if customer want cancel and go back to previous menu
                 if (isCancel(customerInput)) return;
@@ -203,8 +203,8 @@ public class Main {
                 Product.priceValidation(customerInput);
                 weight = Double.parseDouble(Product.formatPrice(customerInput));
                 //calculate price of purchase
-                result = price * weight;
-                System.out.printf("This product will cost you %10.2f SEK\n", result);
+                result  = products.get(index).calculatePrice(weight);
+                System.out.printf("This product will cost you %10.2f SEK for %10.2 "+ products.get(index).getPurchaseType() +"\n", result , weight);
                 return;
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
@@ -250,6 +250,8 @@ public class Main {
                 System.out.println("2. Change name");
                 System.out.println("3. Change price");
                 System.out.println("4. Change description");
+                System.out.println("5. To change discount in product");
+                System.out.println("6. To change promotion in product");
                 System.out.println("Write 'BACK' to cancel");
 
                 customerInput = input.nextLine().trim().toLowerCase();
@@ -275,6 +277,14 @@ public class Main {
                         changeDescription(index);
                         return;
                     }
+                    case "5" -> {
+                        chandeDiscount(index);
+                        return;
+                    }
+                    case "6" -> {
+                        changePromotion(index);
+                        return;
+                    }
                     default -> System.err.println("Not a value of list , try again");
                 }
             } catch (Exception exp) {
@@ -282,6 +292,46 @@ public class Main {
                 continue;
             }
         }
+    }
+
+    private static void changePromotion(int index) {
+        String[] newPromotion = new String[2];
+        double currentPrice = products.get(index).getPrice();
+        while (true){
+            try {
+                System.out.println("Write a new promotion or or write 'BACK' to cancel");
+                System.out.println("How many pieces want you sell in promotion");
+                newPromotion[0] = input.nextLine();
+                if (isCancel(newPromotion[0])) return;
+                System.out.println("How How much you want them to cost? The price should be less than before promotion");
+                newPromotion[1] = input.nextLine();
+                if (isCancel(newPromotion[1])) return;
+                products.get(index).setPromotion(newPromotion , currentPrice);
+                return;
+            } catch (Exception exp) {
+                System.err.println(exp.getMessage());
+                continue;
+            }
+        }
+
+    }
+
+    private static void chandeDiscount(int index) {
+
+        String newDiscount;
+        while (true){
+            try {
+                System.out.println("Write a new dicount or or write 'BACK' to cancel");
+                newDiscount = input.nextLine();
+                if (isCancel(newDiscount)) return;
+                products.get(index).setDiscount(newDiscount);
+                return;
+            } catch (Exception exp) {
+                System.err.println(exp.getMessage());
+                continue;
+            }
+        }
+
     }
 
     private static void changeDescription(int index) {
