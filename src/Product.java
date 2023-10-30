@@ -1,23 +1,29 @@
 
+import java.io.Serializable;
 import java.util.ArrayList;
+public class Product implements Serializable {
 
+    private static final ArrayList<String> productCategories = new ArrayList<>();
 
+    public static enum PurchaseTypes {
+        KILO("Kg"),
+        PIECE("Pcs");
 
-public class Product{
+        public final String value;
 
-    private static ArrayList<String> productTypes = new ArrayList<>();
-
-    private static enum PurchaseTypes {
-        KILO,
-        PIECE,
+        PurchaseTypes(String value){
+            this.value = value;
+        }
     }
 
     private String name;
     private double price;
-    private String type;
+    private String category;
     private String description;
     private int discount;
-    private double[] promotion;
+    private double promotionAmount;
+    private double promotionPrice;
+    private PurchaseTypes purchaseType;
 
     public PurchaseTypes getPurchaseType() {
         return purchaseType;
@@ -27,11 +33,11 @@ public class Product{
         this.purchaseType = purchaseType;
     }
 
-    private PurchaseTypes purchaseType;
+
     static {
-        productTypes.add("fruit");
-        productTypes.add("vegetable");
-        productTypes.add("other");
+        productCategories.add("fruit");
+        productCategories.add("vegetable");
+        productCategories.add("other");
     }
 
     public String getDescription() {
@@ -44,36 +50,37 @@ public class Product{
         }
     }
 
-    public Product(String name, String price, String type, String description) throws Exception {
+    public Product(String name, String price, String category, String description, PurchaseTypes type) throws Exception {
         nameValidating(name);
         priceValidation(price);
-        typeValidation(type);
+        typeValidation(category);
         descriptionValidating(description);
 
         price = formatPrice(price);
 
         this.name = name.trim().toLowerCase();
         this.price = Double.parseDouble((price.trim()));
-        this.type = type;
+        this.category = category;
         this.description = description.trim().toLowerCase();
         this.discount = 0;
-        this.promotion = new double[]{0.0 , 0.0};
-        this.purchaseType = PurchaseTypes.KILO;
+        this.promotionAmount = 0.0;
+        this.promotionPrice = 0.0;
+        this.purchaseType = type;
     }
 
-    public Product(String name, String price, String type) throws Exception {
+    public Product(String name, String price, String category) throws Exception {
 
-        this(name, price, type, "");
+        this(name, price, category, "", PurchaseTypes.PIECE);
 
     }
 
     public Product(String name, String prise) throws Exception {
-        this(name, prise, "other","");
+        this(name, prise, "other","",PurchaseTypes.PIECE);
 
     }
 
     public Product(String name) throws Exception {
-        this(name, "0.00", "other","");
+        this(name, "0.00", "other","",PurchaseTypes.KILO);
 
     }
 
@@ -88,26 +95,17 @@ public class Product{
     }
 
     public double getPrice() {
-
         return this.price;
-
-
-
     }
     public double calculatePrice ( double customerAmount ){
-
-
-
-        if (discount != 0 && promotion[0] == 0 && promotion[1] == 0){
-            return this.price * (double)discount/100;
+        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0){
+            return (this.price * ((double)(100 - discount) /100 )) * customerAmount;
         }
-        if(discount == 0 && promotion[0] != 0 && promotion[1] != 0){
-            if (customerAmount == promotion[0]) return promotion[1];
-            if (customerAmount % promotion[0] == 0) return promotion[1] * customerAmount;
-            if (customerAmount % promotion[0] > 0) return  Math.floor(customerAmount / promotion[0] + (this.price * customerAmount % promotion[0]));
-            if (customerAmount % promotion[0] == promotion[0]) return customerAmount * this.price;
+        if(discount == 0 && promotionAmount != 0 && promotionPrice != 0){
+            if (customerAmount % promotionAmount == 0) return (customerAmount / promotionAmount) * promotionPrice;  //if customer want to buy same amount like promotion or X much more
+            if (customerAmount % promotionAmount == customerAmount) return customerAmount * this.price; //if customer want to buy less then promotion say
+            if (customerAmount % promotionAmount > 0 && customerAmount % promotionAmount != customerAmount) return  (int)(customerAmount / promotionAmount) * promotionPrice + (( customerAmount % promotionAmount) * this.price); //if customer want to buy nore then promotion say but not enough to next promotion
         }
-
         return this.price * customerAmount;
     }
 
@@ -142,7 +140,7 @@ public class Product{
     }
 
     public static boolean typeValidation(String type) throws IllegalArgumentException {
-        for (String t : getProductTypes()) {
+        for (String t : getProductCategories()) {
             if (t.equals(type.trim().toLowerCase())) {
                 return true;
             }
@@ -161,7 +159,6 @@ public class Product{
         } catch (NumberFormatException exp) {
             throw new IllegalArgumentException("Wrong format. Price can't contain letters");
         }
-
     }
 
     public static void discountValidation(String discount) throws IllegalArgumentException {
@@ -169,30 +166,29 @@ public class Product{
         try {
             if (discount.isEmpty()) throw new IllegalArgumentException("Input must not be empty");
             integerCheck = Integer.parseInt(discount);
-            if ((integerCheck < 0)) throw new IllegalArgumentException("Discount must be more or equal 0");
+            if (integerCheck < 0 || integerCheck >=  100) throw new IllegalArgumentException("Discount must be more or equal 0 and less then 100");
+
         } catch (NumberFormatException exp) {
             throw new IllegalArgumentException("Wrong format. Discount can't contain letters and must be an integer");
         }
 
     }
 
-    public static void promotionValidation(String[] promotion , double currentPrice) throws IllegalArgumentException {
-        String quantity  = promotion[0];
-        String promotionalPrice = promotion[1];
+    public static void promotionValidation(String promotionalAmount , String promotionalPrice , double currentPrice) throws IllegalArgumentException {
         double quantityDouble;
         double promotionalpriceDouble;
 
         try {
 
-                if (quantity.isEmpty()) throw new IllegalArgumentException("Quantity must not be empty");
+                if (promotionalAmount.isEmpty()) throw new IllegalArgumentException("Quantity must not be empty");
                 if (promotionalPrice.isEmpty()) throw new IllegalArgumentException("Promotional price must not be empty");
 
-                quantityDouble = Double.parseDouble(quantity);
-                if ((quantityDouble <= 0)) throw new IllegalArgumentException("Quantity must be more then 0");
+                quantityDouble = Double.parseDouble(promotionalAmount);
+                if ((quantityDouble < 0)) throw new IllegalArgumentException("Quantity must be more then 0 or equal");
 
                 promotionalpriceDouble = Double.parseDouble(promotionalPrice);
                 if ((promotionalpriceDouble < 0)) throw new IllegalArgumentException("Promotional price  must be more or equal 0");
-                if(promotionalpriceDouble < (currentPrice * quantityDouble)) throw new IllegalArgumentException("Promotional price must be less then standard price for the same quantity");
+                if(promotionalpriceDouble > (currentPrice * quantityDouble)) throw new IllegalArgumentException("Promotional price must be less then standard price for the same quantity");
 
 
         } catch (NumberFormatException exp) {
@@ -203,30 +199,33 @@ public class Product{
     public  int getDiscount (){
         return this.discount;
     }
-    public  double[] getPromotion (){
-        return this.promotion;
+    public  double getPromotionPrice (){
+        return this.promotionPrice;
+    }
+    public  double getPromotionAmount (){
+        return this.promotionAmount;
     }
     public void setDiscount(String discount) throws  IllegalArgumentException{
         int discountInteger;
         discountValidation(discount);
         discountInteger = Integer.parseInt(discount);
         this.discount = discountInteger;
-        if(this.promotion[0] > 0 || this.promotion[1] > 0 ) this.clearPromotion();
+        if(this.promotionAmount > 0 || this.promotionPrice > 0 ) this.clearPromotion();
 
     }
 
-    public void setPromotion(String[] newPromotion, double currentPrice) throws IllegalArgumentException{
+    public void setPromotion(String newPromotionAmount ,String newPromotionPrice , double currentPrice) throws IllegalArgumentException{
 
-        promotionValidation(newPromotion , currentPrice);
+        promotionValidation(newPromotionAmount , newPromotionPrice , currentPrice);
 
-        this.promotion[0] = Double.parseDouble(newPromotion[0]);
-        this.promotion[1] = Double.parseDouble(newPromotion[1]);
+        this.promotionPrice = Double.parseDouble(newPromotionPrice);
+        this.promotionAmount = Double.parseDouble(newPromotionAmount);
         if(this.discount > 0) this.clearDiscount();
 
     }
     private void clearPromotion (){
-        this.promotion[0] = 0.0;
-        this.promotion[1] = 0.0;
+        this.promotionPrice = 0.0;
+        this.promotionAmount = 0.0;
     }
     private void clearDiscount(){
         this.discount = 0;
@@ -248,28 +247,25 @@ public class Product{
         return price;
     }
 
-    public static ArrayList<String> getProductTypes() {
-        return productTypes;
+    public static ArrayList<String> getProductCategories() {
+        return productCategories;
     }
 
-    public String getType() {
-        return type;
+    public String getCategory() {
+        return category;
     }
 
-    public void setType(String type) throws IllegalArgumentException {
-        if (typeValidation(type)) this.type = type;
+    public void setCategory(String category) throws IllegalArgumentException {
+        if (typeValidation(category)) this.category = category;
     }
 
     @Override
     public String toString() {
         final String ANSI_YELLOW = "\u001B[33m";
         final String ANSI_RESET = "\u001B[0m";
-
-        return  String.format(ANSI_YELLOW + " type: %-12s\t Name: %-25s\t Price: %-7.2f%n" + ANSI_RESET,type, name, price);
-    }
-
-    public void print() {
-        System.out.printf(toString());
+        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0)   return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%-5s Discount: %-3d%%"+ ANSI_RESET, category, name, price,purchaseType.value, discount);
+        if(discount == 0 && promotionAmount != 0 && promotionPrice != 0)    return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: %7.2f/%-5s Promotion: %3.2f/%-4s for %-10.2f" + ANSI_RESET, category, name, price,purchaseType.value ,promotionAmount, purchaseType.value ,promotionPrice);
+        return  String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: Price: %7.2f/%-5s" + ANSI_RESET, category, name, price,purchaseType.value);
     }
 
 
@@ -277,9 +273,26 @@ public class Product{
         final String ANSI_YELLOW = "\u001B[33m";
         final String ANSI_RESET = "\u001B[0m";
 
-        String format = ANSI_YELLOW + " type: %-12s\t Name: %-25s\t Price: %-7.2f Description: %-20s\t%n" + ANSI_RESET;
-        System.out.printf(format, type, name, price, description);
+        String format = ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%5s\tDescription: %-20s\t Discount: %3d%% \t  Promotion(pieces): %-3.2f \t (Price): %-10.2f %n" + ANSI_RESET;
+        System.out.printf(format, category,name, price,purchaseType.value ,description, discount , promotionAmount, promotionPrice );
+    }
+
+    public String writeReceptFormat(double amount){
+        double totalPrice = calculatePrice(amount);
+        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0){
+            return  String.format( "Name: %-20s\t Price: %-7.2f  Discount: %3d%%  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, discount  , totalPrice , amount ,purchaseType.value);
+        }
+        if(discount == 0 && promotionAmount != 0 && promotionPrice != 0) {
+            return  String.format("Name: %-20s\t Price: %-7.2f\t Promotion(pieces): %-3.2f for %-10.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price,  promotionAmount, promotionPrice  ,totalPrice  ,amount, purchaseType.value);
+        }
+        return  String.format("Name: %-20s\t Price: %-7.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price,  totalPrice , amount, purchaseType.value);
+    }
+
+    public void setProductType(PurchaseTypes newType){
+        this.purchaseType = newType;
+    }
+
     }
 
 
-}
+

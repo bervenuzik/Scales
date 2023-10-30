@@ -27,7 +27,7 @@ class ValidationsTest {
     @Test
     void typeValidationTypesFromList() {
         boolean isTrue;
-        for (String t:Product.getProductTypes()) {
+        for (String t:Product.getProductCategories()) {
             isTrue = Product.typeValidation(t);
             assertTrue(isTrue);
         }
