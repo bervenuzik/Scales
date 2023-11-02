@@ -40,7 +40,7 @@ public class Main {
                     switch (customerInput) {
                         case "1" -> showAllProducts();
                         case "2" -> showCategoryProducts();
-                        case "3" -> searchProducts();
+                        case "3" -> searchProducts(true);
                         case "4" -> showBasket();
                         case "5" -> addToBasket();
                         case "6" -> doPurchase();
@@ -213,10 +213,22 @@ public class Main {
 
         while (true) {
             try {
-
-                index = findProduct();
-                if (index == -1) {
+                ArrayList<Product> foundProducts;
+                foundProducts = searchProducts(false);
+                if (foundProducts.isEmpty()) {
+                    System.out.println("Such product is not found");
                     return;
+                }
+                System.out.println("What product do you want to add");
+                for (int i = 0; i < foundProducts.size(); i++) {
+                    System.out.println(i+1 + " " + products.get(i));
+                }
+                customerInput = input.nextLine().trim().toLowerCase();
+                index = Integer.parseInt(customerInput) - 1;
+                if(!controlMenuNumberInput(customerInput)) continue;
+                if(index >= foundProducts.size() || index < 0){
+                    System.out.println("Wrong input");
+                    continue;
                 }
                 searchableProduct = products.get(index);
                 System.out.println("Here is your product:");
@@ -775,29 +787,32 @@ public class Main {
     }
 
 
-    public static void searchProducts(){
+    public static ArrayList<Product> searchProducts(boolean print){
         boolean isfound = false;
         String searchable;
+        ArrayList<Product> foundProducts = new ArrayList<>();
         if (products.isEmpty()) {
             System.err.println("Product list is empty");
-            return;
+            return foundProducts;
         }
         try {
             System.out.println("What product(s) are you searching? Enter a name or 'BACK' to cancel: ");
             searchable = input.nextLine().trim().toLowerCase();
 
-            if (isCancel(searchable)) return;
+            if (isCancel(searchable)) return foundProducts;
             Product.nameValidating(searchable);
 
             for (Product product : products) {
                 if (product.getName().contains(searchable) || product.getDescription().contains(searchable)) {
-                    System.out.println(product);
+                    foundProducts.add(product);
+                   if(print) System.out.println(product);
                     isfound = true;
                 }
             }
             if (!isfound) System.err.println("Such product is not existing");
+            return foundProducts;
         } catch (Exception exp) {
-            return;
+            return foundProducts;
         }
     }
     public static void saveProductsToFile() throws FileNotFoundException{
