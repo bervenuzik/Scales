@@ -219,21 +219,19 @@ public class Main {
                     System.out.println("Such product is not found");
                     return;
                 }
-                System.out.println("What product do you want to add");
+                System.out.println("What product do you want to add , or write back to cancel");
                 for (int i = 0; i < foundProducts.size(); i++) {
-                    System.out.println(i+1 + " " + products.get(i));
+                    System.out.println(i+1 + " " + foundProducts.get(i));
                 }
                 customerInput = input.nextLine().trim().toLowerCase();
+                if(isCancel(customerInput)) return;
                 index = Integer.parseInt(customerInput) - 1;
                 if(!controlMenuNumberInput(customerInput)) continue;
                 if(index >= foundProducts.size() || index < 0){
-                    System.out.println("Wrong input");
+                    System.err.println("Wrong input");
                     continue;
                 }
-                searchableProduct = products.get(index);
-                System.out.println("Here is your product:");
-                System.out.println(searchableProduct.toString());
-                System.out.println();
+                searchableProduct = foundProducts.get(index);
                 break;
             } catch (IndexOutOfBoundsException exp) {
                 System.err.println(exp.getMessage());

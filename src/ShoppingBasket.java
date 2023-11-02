@@ -75,7 +75,8 @@ public class ShoppingBasket {
                 fileOutputStream.write(product.writeReceptFormat(basketMap.get(product)).getBytes());
                 totalToPay += product.calculatePrice(basketMap.get(product));
             }
-            fileOutputStream.write(("Total prise to pay: " + totalToPay).getBytes());
+            String totalString = String.format("Total prise to pay: %-7.2f %n" , totalToPay);
+            fileOutputStream.write(totalString.getBytes());
             fileOutputStream.close();
         }catch (FileNotFoundException exp){
             throw new Exception("File for recepts wasn't found");
@@ -113,7 +114,7 @@ public class ShoppingBasket {
             System.out.println(prod.writeReceptFormat(prodAmount));
             totalPriseToPay += prod.calculatePrice(basketMap.get(prod));
         }
-        System.out.println("Total prise to pay : " + totalPriseToPay);
+        System.out.printf("Total prise to pay : %-7.2f %n", totalPriseToPay);
         System.out.print(ANSI_RESET);
     }
 }
