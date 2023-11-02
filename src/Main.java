@@ -22,8 +22,8 @@ public class Main {
 
 
         try {
+            createProductsFile();
             readProductsFromFile();
-
         } catch (Exception exp) {
             System.err.println(exp.getMessage());
         }
@@ -203,7 +203,6 @@ public class Main {
         //initial values
         String customerInput;
         double amount;
-        double price;
         double result;
         int index;
         Product searchableProduct;
@@ -223,8 +222,6 @@ public class Main {
                 System.out.println("Here is your product:");
                 System.out.println(searchableProduct.toString());
                 System.out.println();
-                //get product's price
-                price = searchableProduct.getPrice();
                 break;
             } catch (IndexOutOfBoundsException exp) {
                 System.err.println(exp.getMessage());
@@ -312,37 +309,15 @@ public class Main {
                 //control customers input
                 if(!controlMenuNumberInput(customerInput)) continue;
                     switch (customerInput) {
-                        case "1" -> {
-                            changeCategoty(index);
-
-                        }
-                        case "2" -> {
-                            changeName(index);
-
-                        }
-                        case "3" -> {
-                            changePrice(index);
-
-                        }
-                        case "4" -> {
-                            changeDescription(index);
-
-                        }
-                        case "5" -> {
-                            chandeDiscount(index);
-
-                        }
-                        case "6" -> {
-                            changePromotion(index);
-
-                        }
-                        case "7" -> {
-                            changeProductType(index);
-                        }
+                        case "1" -> changeCategoty(index);
+                        case "2" -> changeName(index);
+                        case "3" -> changePrice(index);
+                        case "4" -> changeDescription(index);
+                        case "5" -> chandeDiscount(index);
+                        case "6" -> changePromotion(index);
+                        case "7" -> changeProductType(index);
                         default -> System.err.println("Not a value of list , try again");
-
                     }
-
                     saveProductsToFile();
                     return;
 
@@ -477,8 +452,8 @@ public class Main {
 
     public static void changeName(int index) {
         String newName;
-        boolean pending = true;
-        do {
+
+        while(true) {
             try {
                 System.out.println("Choose a new name or or write 'BACK' to cancel");
                 newName = input.nextLine();
@@ -490,7 +465,7 @@ public class Main {
                 System.err.println(exp.getMessage());
                 continue;
             }
-        } while (pending);
+        }
     }
 
     public static void changePrice(int index) {
@@ -509,9 +484,12 @@ public class Main {
         }
     }
 
-    private static void deleteProduct() throws Exception {
+    private static void deleteProduct() {
         int index;
-        //if (products.isEmpty()) throw new Exception("List of products is empty is empty");
+        if (products.isEmpty()) {
+            System.err.println("List of products is empty is empty");
+            return;
+        }
         while(true){
             try {
                 index = findProduct();
@@ -727,13 +705,16 @@ public class Main {
 
     }
 
-    public static void printProducts(String type){
+    public static void printProducts(String type) {
         boolean isEmpty = true;
-        if (products.isEmpty()) {System.err.println("product-list is empty");return;}
+        if (products.isEmpty()) {
+            System.err.println("product-list is empty");
+            return;
+        }
 
         for (Product product : products) {
             if (product.getCategory().equals(type)) {
-                System.out.println(product.toString());
+                System.out.println(product);
                 isEmpty = false;
             }
 
@@ -796,7 +777,7 @@ public class Main {
 
     public static void searchProducts(){
         boolean isfound = false;
-        String searchable = "";
+        String searchable;
         if (products.isEmpty()) {
             System.err.println("Product list is empty");
             return;
@@ -810,7 +791,7 @@ public class Main {
 
             for (Product product : products) {
                 if (product.getName().contains(searchable) || product.getDescription().contains(searchable)) {
-                    System.out.println(product.toString());
+                    System.out.println(product);
                     isfound = true;
                 }
             }
@@ -821,7 +802,7 @@ public class Main {
     }
     public static void saveProductsToFile() throws FileNotFoundException{
         createProductsFile();
-        try (FileOutputStream fileOutputStream = new FileOutputStream(PRODUCTS_FILE);){
+        try (FileOutputStream fileOutputStream = new FileOutputStream(PRODUCTS_FILE)){
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(products);
             objectOutputStream.flush();
@@ -833,15 +814,17 @@ public class Main {
         }
 
     }
-    public static void readProductsFromFile()throws Exception{
-        try (FileInputStream  fileInputStream = new FileInputStream(PRODUCTS_FILE);){
+    public static boolean readProductsFromFile(){
+        try (FileInputStream  fileInputStream = new FileInputStream(PRODUCTS_FILE)){
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             setProducts((ArrayList)objectInputStream.readObject());
             objectInputStream.close();
+            return true;
         } catch (FileNotFoundException e) {
             System.err.println("File with products is not found");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            return false;
+        } catch (IOException | ClassNotFoundException e) {
+            return false;
         }
     }
     public static void createProductsFile(){

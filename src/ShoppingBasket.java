@@ -10,14 +10,12 @@ import java.util.LinkedHashMap;
 public class ShoppingBasket {
     final static String OS_NAME = System.getProperty("os.name");
     final static String USERNAME = System.getProperty("user.name");
-    final static String RECEPTS_FILE_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\" : "/Users/"+USERNAME+"/Documents/Scales/";
-    final static String RECEPTS_FILE = OS_NAME.startsWith("Windows")? "C:\\Scales\\Recepts.txt" : "/Users/"+USERNAME+"/Documents/Scales/Recepts.txt";
+    final static String RECEPTS_FILE_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\" : "/Users/"+USERNAME+"/Documents/Scales/Recepts/";
 
     private static  ShoppingBasket Basket;
     private final LinkedHashMap<Product , Double> basketMap = new LinkedHashMap<>();
 
     private  ShoppingBasket(){
-        createReceptsFile();
     }
 
     public static ShoppingBasket getInstance (){
@@ -34,10 +32,9 @@ public class ShoppingBasket {
         }
     }
     public boolean deleteProductFromBasket(Product product) throws Exception{
-        //TODO add an oportiunity to dele a broduct from basket when we print it
         if(basketMap.containsKey(product)) {
             basketMap.remove(product);
-            System.out.println("Product is deletet from basket");
+            System.out.println("Product is deleted from basket");
             return true;
         }else{
             throw new Exception("There is no such product in basket yet");
@@ -62,43 +59,40 @@ public class ShoppingBasket {
 
     private void createRecept() throws Exception {
         try {
+            createReceptsDirectory();
             double totalToPay = 0;
             LocalDateTime myDateObj = LocalDateTime.now();
+            //creating a file for a recept
             DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mmss-n");
             String formattedDate = myDateObj.format(myFormatObj);
             FileOutputStream fileOutputStream = new FileOutputStream(RECEPTS_FILE_PATH + formattedDate + ".txt");
-
+            //write in a date in recept
             myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-n");
             formattedDate = myDateObj.format(myFormatObj) + "\n";
             fileOutputStream.write(formattedDate.getBytes());
-
-
+            //write in products from basket to recept
             for (Product product : basketMap.keySet()) {
                 fileOutputStream.write(product.writeReceptFormat(basketMap.get(product)).getBytes());
                 totalToPay += product.calculatePrice(basketMap.get(product));
             }
             fileOutputStream.write(("Total prise to pay: " + totalToPay).getBytes());
-
             fileOutputStream.close();
         }catch (FileNotFoundException exp){
             throw new Exception("File for recepts wasn't found");
         }
     }
 
-    private static void  createReceptsFile(){
+    private static void createReceptsDirectory(){
         Path path = Path.of(RECEPTS_FILE_PATH);
-        Path file = Path.of(RECEPTS_FILE);
         try {
             if(!Files.exists(path)) {
                 Files.createDirectory(path);
-            }
-            if (!Files.exists(file)){
-                Files.createFile(file);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     @Override
     public String toString() {
