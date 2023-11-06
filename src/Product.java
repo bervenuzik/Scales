@@ -1,6 +1,7 @@
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Product implements Serializable {
 
@@ -294,7 +295,6 @@ public class Product implements Serializable {
     public void setProductType(PurchaseTypes newType) {
         this.purchaseType = newType;
     }
-
 }
 
 

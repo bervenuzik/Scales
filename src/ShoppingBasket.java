@@ -10,7 +10,9 @@ import java.util.LinkedHashMap;
 public class ShoppingBasket {
     final static String OS_NAME = System.getProperty("os.name");
     final static String USERNAME = System.getProperty("user.name");
-    final static String RECEPTS_FILE_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\" : "/Users/"+USERNAME+"/Documents/Scales/Recepts/";
+    final static String RECEPTS_FILE_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\Recepts\\" : "/Users/"+USERNAME+"/Documents/Scales/Recepts/";
+    //final static String RECEPTS_DIRECTORY_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\" : "/Users/"+USERNAME+"/Documents/Scales/Recepts/";
+
 
     private static  ShoppingBasket Basket;
     private final LinkedHashMap<Product , Double> basketMap = new LinkedHashMap<>();
