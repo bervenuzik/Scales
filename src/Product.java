@@ -1,6 +1,7 @@
 
 import java.io.Serializable;
 import java.util.ArrayList;
+
 public class Product implements Serializable {
 
     private static final ArrayList<String> productCategories = new ArrayList<>();
@@ -11,7 +12,7 @@ public class Product implements Serializable {
 
         public final String value;
 
-        PurchaseTypes(String value){
+        PurchaseTypes(String value) {
             this.value = value;
         }
     }
@@ -50,7 +51,7 @@ public class Product implements Serializable {
         }
     }
 
-    public Product(String name, String price, String category, String description, PurchaseTypes type) throws Exception {
+    public Product(String name, String price, String category, String description, PurchaseTypes type) throws IllegalArgumentException {
         nameValidating(name);
         priceValidation(price);
         typeValidation(category);
@@ -68,19 +69,19 @@ public class Product implements Serializable {
         this.purchaseType = type;
     }
 
-    public Product(String name, String price, String category) throws Exception {
+    public Product(String name, String price, String category) throws IllegalArgumentException {
 
         this(name, price, category, "", PurchaseTypes.PIECE);
 
     }
 
-    public Product(String name, String prise) throws Exception {
-        this(name, prise, "other","",PurchaseTypes.PIECE);
+    public Product(String name, String price) throws IllegalArgumentException {
+        this(name, price, "other", "", PurchaseTypes.PIECE);
 
     }
 
-    public Product(String name) throws Exception {
-        this(name, "0.00", "other","",PurchaseTypes.KILO);
+    public Product(String name) throws IllegalArgumentException {
+        this(name, "0.00", "other", "", PurchaseTypes.KILO);
 
     }
 
@@ -88,7 +89,7 @@ public class Product implements Serializable {
         return name;
     }
 
-    public void setName(String name) throws Exception {
+    public void setName(String name) throws IllegalArgumentException {
         if (nameValidating(name)) {
             this.name = name;
         }
@@ -97,19 +98,23 @@ public class Product implements Serializable {
     public double getPrice() {
         return this.price;
     }
-    public double calculatePrice ( double customerAmount ){
-        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0){
-            return (this.price * ((double)(100 - discount) /100 )) * customerAmount;
+
+    public double calculatePrice(double customerAmount) {
+        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0) {
+            return (this.price * ((double) (100 - discount) / 100)) * customerAmount;
         }
-        if(discount == 0 && promotionAmount != 0 && promotionPrice != 0){
-            if (customerAmount % promotionAmount == 0) return (customerAmount / promotionAmount) * promotionPrice;  //if customer want to buy same amount like promotion or X much more
-            if (customerAmount % promotionAmount == customerAmount) return customerAmount * this.price; //if customer want to buy less then promotion say
-            if (customerAmount % promotionAmount > 0 && customerAmount % promotionAmount != customerAmount) return  (int)(customerAmount / promotionAmount) * promotionPrice + (( customerAmount % promotionAmount) * this.price); //if customer want to buy nore then promotion say but not enough to next promotion
+        if (discount == 0 && promotionAmount != 0 && promotionPrice != 0) {
+            if (customerAmount % promotionAmount == 0)
+                return (customerAmount / promotionAmount) * promotionPrice;  //if customer want to buy same amount like promotion or X much more
+            if (customerAmount % promotionAmount == customerAmount)
+                return customerAmount * this.price; //if customer want to buy less then promotion say
+            if (customerAmount % promotionAmount > 0 && customerAmount % promotionAmount != customerAmount)
+                return (int) (customerAmount / promotionAmount) * promotionPrice + ((customerAmount % promotionAmount) * this.price); //if customer want to buy nore then promotion say but not enough to next promotion
         }
         return this.price * customerAmount;
     }
 
-    public void setPrice(String price) throws Exception {
+    public void setPrice(String price) throws NullPointerException , NumberFormatException {
         priceValidation((price));
         price = formatPrice(price);
         this.price = Double.parseDouble(price);
@@ -118,11 +123,10 @@ public class Product implements Serializable {
 
     public static boolean nameValidating(String name) throws IllegalArgumentException {
         String validatedName = name.toLowerCase().trim();
-        if (validatedName.isEmpty()) throw new IllegalArgumentException("name can't be empty");
-        //checking if any of chars in name is not a letter
+        if (validatedName.isEmpty()) throw new IllegalArgumentException("Name can't be empty");
         for (char letter : validatedName.toCharArray()) {
             if (name.isEmpty() || (letter < 97 && letter != 32) || letter > 122) {
-                throw new IllegalArgumentException("wrong input of name, must contain only letters and spaces");
+                throw new IllegalArgumentException("Wrong input of name, must contain only letters and spaces");
             }
         }
         return true;
@@ -133,7 +137,7 @@ public class Product implements Serializable {
         char[] descriptionToCharArray = description.toCharArray();
         for (char symbol : descriptionToCharArray) {
             if ((symbol < 97 && symbol != 32) || symbol > 122)
-                throw new IllegalArgumentException("wrong input of description, must contain only letters and spaces");
+                throw new IllegalArgumentException("Wrong input of description, must contain only letters and spaces");
         }
         return true;
 
@@ -145,7 +149,7 @@ public class Product implements Serializable {
                 return true;
             }
         }
-        throw new IllegalArgumentException("there is no such type");
+        throw new IllegalArgumentException("There is no such type");
 
     }
 
@@ -166,7 +170,8 @@ public class Product implements Serializable {
         try {
             if (discount.isEmpty()) throw new IllegalArgumentException("Input must not be empty");
             integerCheck = Integer.parseInt(discount);
-            if (integerCheck < 0 || integerCheck >=  100) throw new IllegalArgumentException("Discount must be more or equal 0 and less then 100");
+            if (integerCheck < 0 || integerCheck >= 100)
+                throw new IllegalArgumentException("Discount must be more or equal 0 and less then 100");
 
         } catch (NumberFormatException exp) {
             throw new IllegalArgumentException("Wrong format. Discount can't contain letters and must be an integer");
@@ -174,21 +179,23 @@ public class Product implements Serializable {
 
     }
 
-    public static void promotionValidation(String promotionalAmount , String promotionalPrice , double currentPrice) throws IllegalArgumentException {
+    public static void promotionValidation(String promotionalAmount, String promotionalPrice, double currentPrice) throws IllegalArgumentException {
         double quantityDouble;
         double promotionalpriceDouble;
 
         try {
 
-                if (promotionalAmount.isEmpty()) throw new IllegalArgumentException("Quantity must not be empty");
-                if (promotionalPrice.isEmpty()) throw new IllegalArgumentException("Promotional price must not be empty");
+            if (promotionalAmount.isEmpty()) throw new IllegalArgumentException("Quantity must not be empty");
+            if (promotionalPrice.isEmpty()) throw new IllegalArgumentException("Promotional price must not be empty");
 
-                quantityDouble = Double.parseDouble(promotionalAmount);
-                if ((quantityDouble < 0)) throw new IllegalArgumentException("Quantity must be more then 0 or equal");
+            quantityDouble = Double.parseDouble(promotionalAmount);
+            if ((quantityDouble < 0)) throw new IllegalArgumentException("Quantity must be more then 0 or equal");
 
-                promotionalpriceDouble = Double.parseDouble(promotionalPrice);
-                if ((promotionalpriceDouble < 0)) throw new IllegalArgumentException("Promotional price  must be more or equal 0");
-                if(promotionalpriceDouble > (currentPrice * quantityDouble)) throw new IllegalArgumentException("Promotional price must be less then standard price for the same quantity");
+            promotionalpriceDouble = Double.parseDouble(promotionalPrice);
+            if ((promotionalpriceDouble < 0))
+                throw new IllegalArgumentException("Promotional price  must be more or equal 0");
+            if (promotionalpriceDouble > (currentPrice * quantityDouble))
+                throw new IllegalArgumentException("Promotional price must be less then standard price for the same quantity");
 
 
         } catch (NumberFormatException exp) {
@@ -196,55 +203,49 @@ public class Product implements Serializable {
         }
 
     }
-    public  int getDiscount (){
+
+    public int getDiscount() {
         return this.discount;
     }
-    public  double getPromotionPrice (){
+
+    public double getPromotionPrice() {
         return this.promotionPrice;
     }
-    public  double getPromotionAmount (){
+
+    public double getPromotionAmount() {
         return this.promotionAmount;
     }
-    public void setDiscount(String discount) throws  IllegalArgumentException{
+
+    public void setDiscount(String discount) throws IllegalArgumentException {
         int discountInteger;
         discountValidation(discount);
         discountInteger = Integer.parseInt(discount);
         this.discount = discountInteger;
-        if(this.promotionAmount > 0 || this.promotionPrice > 0 ) this.clearPromotion();
+        if (this.promotionAmount > 0 || this.promotionPrice > 0) this.clearPromotion();
 
     }
 
-    public void setPromotion(String newPromotionAmount ,String newPromotionPrice , double currentPrice) throws IllegalArgumentException{
+    public void setPromotion(String newPromotionAmount, String newPromotionPrice, double currentPrice) throws IllegalArgumentException {
 
-        promotionValidation(newPromotionAmount , newPromotionPrice , currentPrice);
+        promotionValidation(newPromotionAmount, newPromotionPrice, currentPrice);
 
         this.promotionPrice = Double.parseDouble(newPromotionPrice);
         this.promotionAmount = Double.parseDouble(newPromotionAmount);
-        if(this.discount > 0) this.clearDiscount();
+        if (this.discount > 0) this.clearDiscount();
 
     }
-    private void clearPromotion (){
+
+    private void clearPromotion() {
         this.promotionPrice = 0.0;
         this.promotionAmount = 0.0;
     }
-    private void clearDiscount(){
+
+    private void clearDiscount() {
         this.discount = 0;
     }
 
-    public static String formatPrice(String price) { //kollar om priset innehåller ',' symbol och ersätter den mot '.'
-        price = price.trim();
-        char[] priceDecimalSymbol = price.toCharArray();
-        for (int i = 0; i < priceDecimalSymbol.length; i++) {
-            if (priceDecimalSymbol[i] == ',') priceDecimalSymbol[i] = '.';
-        }
-
-        price = "";
-
-        for (char symbol : priceDecimalSymbol) {
-            price += symbol;
-        }
-
-        return price;
+    public static String formatPrice(String price) {
+        return price.trim().replace(',', '.');
     }
 
     public static ArrayList<String> getProductCategories() {
@@ -263,9 +264,11 @@ public class Product implements Serializable {
     public String toString() {
         final String ANSI_YELLOW = "\u001B[33m";
         final String ANSI_RESET = "\u001B[0m";
-        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0)   return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%-5s Discount: %-3d%%"+ ANSI_RESET, category, name, price,purchaseType.value, discount);
-        if(discount == 0 && promotionAmount != 0 && promotionPrice != 0)    return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: %7.2f/%-5s Promotion: %3.2f/%-4s for %-10.2f" + ANSI_RESET, category, name, price,purchaseType.value ,promotionAmount, purchaseType.value ,promotionPrice);
-        return  String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: Price: %7.2f/%-5s" + ANSI_RESET, category, name, price,purchaseType.value);
+        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0)
+            return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%-5s Discount: %-3d%%" + ANSI_RESET, category, name, price, purchaseType.value, discount);
+        if (discount == 0 && promotionAmount != 0 && promotionPrice != 0)
+            return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: %7.2f/%-5s Promotion: %3.2f/%-4s for %-10.2f" + ANSI_RESET, category, name, price, purchaseType.value, promotionAmount, purchaseType.value, promotionPrice);
+        return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: %7.2f/%-5s" + ANSI_RESET, category, name, price, purchaseType.value);
     }
 
 
@@ -274,25 +277,25 @@ public class Product implements Serializable {
         final String ANSI_RESET = "\u001B[0m";
 
         String format = ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%5s\tDescription: %-20s\t Discount: %3d%% \t  Promotion(pieces): %-3.2f \t (Price): %-10.2f %n" + ANSI_RESET;
-        System.out.printf(format, category,name, price,purchaseType.value ,description, discount , promotionAmount, promotionPrice );
+        System.out.printf(format, category, name, price, purchaseType.value, description, discount, promotionAmount, promotionPrice);
     }
 
-    public String writeReceptFormat(double amount){
+    public String writeReceptFormat(double amount) {
         double totalPrice = calculatePrice(amount);
-        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0){
-            return  String.format( "Name: %-20s\t Price: %-7.2f  Discount: %3d%%  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, discount  , totalPrice , amount ,purchaseType.value);
+        if (discount != 0 && promotionAmount == 0 && promotionPrice == 0) {
+            return String.format("Name: %-20s\t Price: %-7.2f  Discount: %3d%%  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, discount, totalPrice, amount, purchaseType.value);
         }
-        if(discount == 0 && promotionAmount != 0 && promotionPrice != 0) {
-            return  String.format("Name: %-20s\t Price: %-7.2f\t Promotion(pieces): %-3.2f for %-10.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price,  promotionAmount, promotionPrice  ,totalPrice  ,amount, purchaseType.value);
+        if (discount == 0 && promotionAmount != 0 && promotionPrice != 0) {
+            return String.format("Name: %-20s\t Price: %-7.2f\t Promotion(pieces): %-3.2f for %-10.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, promotionAmount, promotionPrice, totalPrice, amount, purchaseType.value);
         }
-        return  String.format("Name: %-20s\t Price: %-7.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price,  totalPrice , amount, purchaseType.value);
+        return String.format("Name: %-20s\t Price: %-7.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, totalPrice, amount, purchaseType.value);
     }
 
-    public void setProductType(PurchaseTypes newType){
+    public void setProductType(PurchaseTypes newType) {
         this.purchaseType = newType;
     }
 
-    }
+}
 
 
 

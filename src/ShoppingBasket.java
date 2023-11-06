@@ -57,7 +57,7 @@ public class ShoppingBasket {
         return basketMap.isEmpty();
     }
 
-    private void createRecept() throws Exception {
+    private void createRecept() throws IOException {
         try {
             createReceptsDirectory();
             double totalToPay = 0;
@@ -78,8 +78,9 @@ public class ShoppingBasket {
             String totalString = String.format("Total prise to pay: %-7.2f %n" , totalToPay);
             fileOutputStream.write(totalString.getBytes());
             fileOutputStream.close();
+            System.out.println("Receipt is created.");
         }catch (FileNotFoundException exp){
-            throw new Exception("File for recepts wasn't found");
+            throw new FileNotFoundException("File for recepts wasn't found");
         }
     }
 

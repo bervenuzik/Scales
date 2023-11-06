@@ -2,14 +2,16 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 
 public class Main {
     final static String OS_NAME = System.getProperty("os.name");
     final static String USERNAME = System.getProperty("user.name");
-    final static String PRODUCTS_FILE_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\" : "/Users/"+USERNAME+"/Documents/Scales/";
-    final static String PRODUCTS_FILE = OS_NAME.startsWith("Windows")? "C:\\Scales\\Products.txt" : "/Users/"+USERNAME+"/Documents/Scales/Products.txt";
+    final static String PRODUCTS_FILE_PATH = OS_NAME.startsWith("Windows") ? "C:\\Scales\\" : "/Users/" + USERNAME + "/Documents/Scales/";
+    final static String PRODUCTS_FILE = OS_NAME.startsWith("Windows") ? "C:\\Scales\\Products.txt" : "/Users/" + USERNAME + "/Documents/Scales/Products.txt";
 
     final static ShoppingBasket basket = ShoppingBasket.getInstance();
 
@@ -32,23 +34,28 @@ public class Main {
 
         showGreetings();
 
-        while (!exit){
+        while (!exit) {
             showMainMenu();
             try {
-                String customerInput = input.nextLine().trim().toLowerCase();
-                if(!controlMenuNumberInput(customerInput)) continue;
-                    switch (customerInput) {
-                        case "1" -> showAllProducts();
-                        case "2" -> showCategoryProducts();
-                        case "3" -> searchProducts(true);
-                        case "4" -> showBasket();
-                        case "5" -> addToBasket();
-                        case "6" -> doPurchase();
-                        case "7" -> administrationMode();
-                        case "9" -> exit = true;
-                        default -> System.err.println("Value not from list");
-                    }
+                int customerInput = input.nextInt();
+                input.nextLine();
+                switch (customerInput) {
+                    case 1 -> showAllProducts();
+                    case 2 -> showProductsOfCategory();
+                    case 3 -> findProducts(true);
+                    case 4 -> showBasket();
+                    case 5 -> addToBasket();
+                    case 6 -> doPurchase();
+                    case 7 -> administrationMode();
+                    case 9 -> exit = true;
+                    default -> System.err.println("Value not from list");
+                }
 
+            } catch (InputMismatchException exp) {
+                System.err.println("Wrong input , write a number");
+                System.out.println();
+                input.nextLine();
+                continue;
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
                 continue;
@@ -65,11 +72,14 @@ public class Main {
         System.out.println("Now you will get some alternativs for actions :" + ANSI_RESET);
     }
 
-    private static int findProduct() throws Exception {
+    private static int findProductIndex() {
         boolean isfound = false;
         int index = -1;
         String searchable;
-        if (products.isEmpty()) throw new IndexOutOfBoundsException("Product list is empty");
+        if (products.isEmpty()) {
+            System.err.println("Product list is empty");
+            return -1;
+        }
         try {
             System.out.println("What product ? Enter a name or 'BACK' to cancel: ");
             searchable = input.nextLine().trim().toLowerCase();
@@ -86,13 +96,38 @@ public class Main {
                     break;
                 }
             }
-            if (!isfound) throw new Exception("Such product is not existing");
-            return index;
+            if (!isfound) {
+                System.err.println("Such product is not existing");
+                return -1;
+            }
+
         } catch (Exception exp) {
-            throw new Exception(exp.getMessage());
+            System.err.println(exp.getMessage());
+            ;
 
         }
+        return index;
+    }
 
+    private static int findProductIndex(Product product) {
+        boolean isfound = false;
+        int index = -1;
+        if (products.isEmpty()) {
+            System.err.println("Product list is empty");
+            return -1;
+        }
+        for (int i = 0; i < products.size(); i++) {
+            if (products.get(i).getName().equals(product.getName())) {
+                index = i;
+                isfound = true;
+                break;
+            }
+        }
+        if (!isfound) {
+            System.err.println("Such product is not existing");
+            return -1;
+        }
+        return index;
     }
 
     public static void showMainMenu() {
@@ -108,24 +143,25 @@ public class Main {
         System.out.println("\n9. To Exit the program");
     }
 
-    public static void showAllProducts(){
+    public static void showAllProducts() {
         //print out all products
         printProducts();
     }
-    public  static void showBasket(){
-        try{
-        basket.printBasket();
+
+    public static void showBasket() {
+        try {
+            basket.printBasket();
             String checkStatement = "yes";
-            System.out.println("If you want to delete any product from basket write '" + checkStatement +"'");
+            System.out.println("If you want to delete any product from basket write '" + checkStatement + "'");
             System.out.println("If you want to go back write something else");
             String customerInput = input.nextLine().trim().toLowerCase();
-            if (customerInput.equals(checkStatement)){
-                int index =  findProduct();
-                if(index == -1)return;
+            if (customerInput.equals(checkStatement)) {
+                int index = findProductIndex();
+                if (index == -1) return;
                 basket.deleteProductFromBasket(products.get(index));
-            }else return;
+            } else return;
 
-        }catch (Exception exp){
+        } catch (Exception exp) {
             System.err.println(exp.getMessage());
             return;
         }
@@ -141,7 +177,7 @@ public class Main {
         int tryAmount = 3;
 
 
-       System.out.println("Write in a PASSWORD, you have 3 tries: ");
+        System.out.println("Write in a PASSWORD, you have 3 tries: ");
 
 
         //checking if customer is not an administrator
@@ -162,28 +198,35 @@ public class Main {
 
         // checkin if customer is administrator
         while (isAdministrator) {
-
+            int choise;
             System.out.print(ANSI_GREEN);
             try {
                 showInstructions();
                 //show a menu
-                System.out.println("Choose an action, press: ");
+                System.out.println("Choose an action , press: ");
                 System.out.println("1. To add a product");
                 System.out.println("2. To delete a product");
                 System.out.println("3. To change information in product");
-                System.out.println("Write 'BACK' to exit ADMINISTRATION MODE");
+                System.out.println("4. To show all products");
+                System.out.println("9. To exit from ADMINISTRATION MODE");
                 //take customer's input
-                customerInput = input.nextLine().trim().toLowerCase();
-                //if customer wrote back , close administration mode. Go back to previous menu
-                if (isCancel(customerInput)) {System.out.print(ANSI_RESET);break;}
-                if(!controlMenuNumberInput(customerInput)) continue;
-                    switch (customerInput) {
-                        case "1" -> addProduct();
-                        case "2" -> deleteProduct();
-                        case "3" -> changeInfo();
-                        default -> System.err.println("Wrong input, try again, choose from list");
+                choise = input.nextInt();
+                input.nextLine();
+                switch (choise) {
+                    case 1 -> addProduct();
+                    case 2 -> deleteProduct();
+                    case 3 -> changeInfo();
+                    case 4 -> printProductsAdmin();
+                    case 9 -> {
+                        System.out.println(ANSI_RESET + "ADMINISTRATION MODE OFF");
+                        return;
                     }
-
+                    default -> System.err.println("Wrong input, try again, choose from list");
+                }
+            } catch (InputMismatchException exp) {
+                System.err.println("Wrong format , write a number");
+                System.out.println();
+                input.nextLine();
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
             }
@@ -191,11 +234,17 @@ public class Main {
 
 
     }
-    public static void doPurchase() throws Exception{
-        if(basket.isEmpty()) {
+
+    public static void doPurchase() throws Exception {
+        if (basket.isEmpty()) {
             throw new Exception("Basket is empty , add products first");
         }
-        basket.doPurchase();
+        try {
+            basket.doPurchase();
+            System.out.println("Purchase is Successful. Recept is saved");
+        } catch (IOException exp) {
+            System.err.println("File wasn't found");
+        }
 
     }
 
@@ -214,20 +263,19 @@ public class Main {
         while (true) {
             try {
                 ArrayList<Product> foundProducts;
-                foundProducts = searchProducts(false);
+                foundProducts = findProducts(false);
                 if (foundProducts.isEmpty()) {
-                    System.out.println("Such product is not found");
                     return;
                 }
                 System.out.println("What product do you want to add , or write back to cancel");
                 for (int i = 0; i < foundProducts.size(); i++) {
-                    System.out.println(i+1 + " " + foundProducts.get(i));
+                    System.out.println(i + 1 + " " + foundProducts.get(i));
                 }
                 customerInput = input.nextLine().trim().toLowerCase();
-                if(isCancel(customerInput)) return;
+                if (isCancel(customerInput)) return;
                 index = Integer.parseInt(customerInput) - 1;
-                if(!controlMenuNumberInput(customerInput)) continue;
-                if(index >= foundProducts.size() || index < 0){
+                if (!controlMenuNumberInput(customerInput)) continue;
+                if (index >= foundProducts.size() || index < 0) {
                     System.err.println("Wrong input");
                     continue;
                 }
@@ -243,7 +291,7 @@ public class Main {
         while (true) {
             try {
                 //ask how much want customer buy
-                System.out.println("How many " + searchableProduct.getPurchaseType() +" do you want to buy? write 'BACK' to cancel");
+                System.out.println("How many " + searchableProduct.getPurchaseType() + " do you want to buy? write 'BACK' to cancel");
                 customerInput = input.nextLine().trim().toLowerCase();
                 //check if customer want cancel and go back to previous menu
                 if (isCancel(customerInput)) return;
@@ -252,8 +300,8 @@ public class Main {
                 Product.priceValidation(customerInput);
                 amount = Double.parseDouble(Product.formatPrice(customerInput));
                 //calculate price of purchase
-                result  = searchableProduct.calculatePrice(amount);
-                System.out.printf("This product will cost you %10.2f SEK for %10.2f %-5s %n", result , amount , searchableProduct.getPurchaseType().value);
+                result = searchableProduct.calculatePrice(amount);
+                System.out.printf("This product will cost you %10.2f SEK for %10.2f %-5s %n", result, amount, searchableProduct.getPurchaseType().value);
 
 
                 System.out.println("Do tou want to add a product to basket? (yes/no):");
@@ -263,7 +311,7 @@ public class Main {
                     System.out.println("product is successfully added");
                     return;
                 }
-                if (customerInput.equals("no"))return;
+                if (customerInput.equals("no")) return;
 
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
@@ -275,90 +323,85 @@ public class Main {
 
 
     public static void changeInfo() {
-        String customerInput;
-
-        int index = 0;
+        int customerInput;
+        final String ANSI_GREEN = "\u001B[32m";
+        final String ANSI_RESET = "\u001B[0m";
+        int index;
         while (true) {
-            try {
                 //geting a product's index that customer want to work with
-                index = findProduct();
-
+                index = findAndChooseProduct("What product do you want to change?");
                 // if customer want to exit
                 if (index == -1) {
                     return;
                 }
-                System.out.println("Here is your product:");
                 break;
-            } catch (IndexOutOfBoundsException exp) {
-                System.err.println(exp.getMessage());
-                return;
-            } catch (Exception exp) {
-                System.err.println(exp.getMessage());
-                continue;
-            }
         }
 
-
-        while (true){
+        while (true) {
+            System.out.println("Here is your product:");
             products.get(index).printAdmin();
             System.out.println();
             try {
+                System.out.print(ANSI_GREEN);
                 System.out.println("What kind of info you want to change?");
-                System.out.println("Wright: ");
-                System.out.println("1. Change type");
-                System.out.println("2. Change name");
-                System.out.println("3. Change price");
-                System.out.println("4. Change description");
-                System.out.println("5. To change discount in product");
-                System.out.println("6. To change promotion in product");
-                System.out.println("Write 'BACK' to cancel");
+                System.out.println("1. Category");
+                System.out.println("2. Name");
+                System.out.println("3. Price");
+                System.out.println("4. Description");
+                System.out.println("5. Discount");
+                System.out.println("6. Promotion");
+                System.out.println("7. Type of purchase");
+                System.out.println("0. Exit");
+                System.out.println("->");
 
-                customerInput = input.nextLine().trim().toLowerCase();
-                //check if customer want to cancel
-                if (isCancel(customerInput)) return;
-                //control customers input
-                if(!controlMenuNumberInput(customerInput)) continue;
-                    switch (customerInput) {
-                        case "1" -> changeCategoty(index);
-                        case "2" -> changeName(index);
-                        case "3" -> changePrice(index);
-                        case "4" -> changeDescription(index);
-                        case "5" -> chandeDiscount(index);
-                        case "6" -> changePromotion(index);
-                        case "7" -> changeProductType(index);
-                        default -> System.err.println("Not a value of list , try again");
+                customerInput = input.nextInt();
+                input.nextLine();
+                switch (customerInput) {
+                    case 1 -> changeCategory(index);
+                    case 2 -> changeName(index);
+                    case 3 -> changePrice(index);
+                    case 4 -> changeDescription(index);
+                    case 5 -> changeDiscount(index);
+                    case 6 -> changePromotion(index);
+                    case 7 -> changePurchaseType(index);
+                    case 0 -> {
+                        saveProductsToFile();
+                        System.out.print(ANSI_RESET);
+                        return;
                     }
-                    saveProductsToFile();
-                    return;
-
-            } catch (Exception exp) {
-                System.err.println(exp.getMessage());
+                    default -> System.err.println("Not a value of list , try again");
+                }
+                saveProductsToFile();
+                System.out.println("Changes are saved");
+            } catch (InputMismatchException exp) {
+                System.err.println("Wrong format , write a number");
+                System.out.println();
+                input.nextLine();
+            } catch (FileNotFoundException exp){
+                System.out.println("Product wasn't updated. File with products is not found");
             }
         }
     }
 
-    private static void changeProductType(int index) {
+
+    private static void changePurchaseType(int index) {
         String userInput;
-        Integer userInputInteger;
-        Product.PurchaseTypes [] types = Product.PurchaseTypes.values();
-        while (true){
+        int userInputInteger;
+        ArrayList<Product.PurchaseTypes> types = new ArrayList<>(Arrays.asList(Product.PurchaseTypes.values()));
+        while (true) {
             try {
                 System.out.println("Choose a new type or write 'BACK' to cancel");
-                for (int i = 0; i < types.length ; i++){
-                    System.out.println(i+1 + types[i].value);
+                for (int i = 0; i < types.size(); i++) {
+                    System.out.println(i + 1+". " + types.get(i).value);
                 }
                 userInput = input.nextLine().trim().toLowerCase();
-                if(isCancel(userInput)) return;
-                if(!controlMenuNumberInput(userInput)) continue;
-                    userInputInteger = Integer.parseInt(userInput);
-                    if(userInputInteger  > types.length || userInputInteger  <= 0) {
-                        System.err.println("Value not from list, try again");
-                        continue;
-                    }
-                    products.get(index).setProductType(types[userInputInteger]);
-                    return;
+                if (isCancel(userInput)) return;
+                if (!controlMenuNumberInput(userInput, types)) continue;
+                userInputInteger = Integer.parseInt(userInput) - 1;
+                products.get(index).setProductType(types.get(userInputInteger));
+                return;
 
-            } catch (NumberFormatException  exp) {
+            } catch (NumberFormatException exp) {
                 System.err.println(exp.getMessage());
             }
         }
@@ -368,7 +411,7 @@ public class Main {
         String newPromotionAmount;
         String newPromotionPrica;
         double currentPrice = products.get(index).getPrice();
-        while (true){
+        while (true) {
             try {
                 System.out.println("Write a new promotion or or write 'BACK' to cancel");
                 System.out.println("How many pieces want you sell in promotion");
@@ -377,7 +420,7 @@ public class Main {
                 System.out.println("How How much you want them to cost? The price should be less than before promotion");
                 newPromotionPrica = input.nextLine();
                 if (isCancel(newPromotionPrica)) return;
-                products.get(index).setPromotion(newPromotionAmount ,newPromotionPrica , currentPrice);
+                products.get(index).setPromotion(newPromotionAmount, newPromotionPrica, currentPrice);
                 return;
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
@@ -387,12 +430,12 @@ public class Main {
 
     }
 
-    private static void chandeDiscount(int index) {
+    private static void changeDiscount(int index) {
 
         String newDiscount;
-        while (true){
+        while (true) {
             try {
-                System.out.println("Write a new dicount or or write 'BACK' to cancel");
+                System.out.println("Write a new discount or or write 'BACK' to cancel");
                 newDiscount = input.nextLine();
                 if (isCancel(newDiscount)) return;
                 products.get(index).setDiscount(newDiscount);
@@ -408,7 +451,7 @@ public class Main {
     private static void changeDescription(int index) {
         String newDescription;
 
-        while (true){
+        while (true) {
             try {
                 System.out.println("Choose a new Description or or write 'BACK' to cancel");
                 newDescription = input.nextLine();
@@ -427,27 +470,26 @@ public class Main {
 
     }
 
-    public static void changeCategoty(int index) {
-        String newType;
-        int choise;
-        while (true){
+    public static void changeCategory(int index) {
+        String customerInput;
+        String newCategory;
+        int newCategoryIndex;
+        while (true) {
 
             System.out.println("Choose a new type or or write 'BACK' to cancel");
             printTypes();
-            newType = input.nextLine();
+            customerInput = input.nextLine().trim().toLowerCase();
             try {
                 //check if customer want to cancel
-                if (isCancel(newType)) return;
-                if(!controlMenuNumberInput(newType)) continue;
+                if (isCancel(customerInput)) return;
+                if (!controlMenuNumberInput(customerInput, Product.getProductCategories())) continue;
 
                 //parse customer choice to integer
-                choise = Integer.parseInt(newType);
+                newCategoryIndex = Integer.parseInt(customerInput) - 1;
                 //get a type with
-                newType = Product.getProductCategories().get(choise - 1);
-
-
+                newCategory = Product.getProductCategories().get(newCategoryIndex);
                 //set new type to product
-                products.get(index).setCategory(newType);
+                products.get(index).setCategory(newCategory);
                 return;
             } catch (NumberFormatException exp) {
                 System.err.println("Not a value of list , try again");
@@ -463,7 +505,7 @@ public class Main {
     public static void changeName(int index) {
         String newName;
 
-        while(true) {
+        while (true) {
             try {
                 System.out.println("Choose a new name or or write 'BACK' to cancel");
                 newName = input.nextLine();
@@ -480,7 +522,7 @@ public class Main {
 
     public static void changePrice(int index) {
         String newPrice;
-        while (true){
+        while (true) {
             try {
                 System.out.println("Write a new price or or write 'BACK' to cancel");
                 newPrice = input.nextLine();
@@ -496,22 +538,22 @@ public class Main {
 
     private static void deleteProduct() {
         int index;
+        String massege = "Choose product you want to delete ,or write 'BACK' to cancel ";
         if (products.isEmpty()) {
             System.err.println("List of products is empty is empty");
             return;
         }
-        while(true){
+        while (true) {
             try {
-                index = findProduct();
-                //if customer want to cancel
-                if (index == -1) {
-                    return;
-                }
+                index = findAndChooseProduct(massege);
+                if (index == -1) return;
                 products.remove(index);
                 System.out.println("A product is removed , SUCCESS");
                 saveProductsToFile();
                 return;
-            } catch (Exception exp) {
+            } catch (InputMismatchException exp) {
+                System.err.println("Wrong format , write a number");
+            } catch (FileNotFoundException exp) {
                 System.err.println(exp.getMessage());
             }
         }
@@ -537,8 +579,8 @@ public class Main {
         int choise;
         Product.PurchaseTypes type;
 
-        while (true){
-            while (true){
+        while (true) {
+            while (true) {
                 try {
                     System.out.println("What category of product you want to add, choose from: ");
 
@@ -550,7 +592,7 @@ public class Main {
                     // check if customer want to cancel
                     if (isCancel(customerInput)) return;
                     // control input
-                    if(!controlMenuNumberInput(customerInput)) continue;
+                    if (!controlMenuNumberInput(customerInput)) continue;
                     //parse string input to integer
                     choise = Integer.parseInt(customerInput);
                     if (choise < 1 || choise > Product.getProductCategories().size())
@@ -568,7 +610,7 @@ public class Main {
             }
 
 
-            while (true){
+            while (true) {
                 try {
                     System.out.println("Enter a name of product or BACK to cancel");
                     System.out.println("Name can contain only letters");
@@ -580,7 +622,7 @@ public class Main {
 
                     Product.nameValidating(customerInput);
                     //check if such product is already existing and name is correct
-                    if(!isProductExist(customerInput)) continue;
+                    if (isProductAlreadyExist(customerInput)) continue;
 
 
                     name = customerInput;
@@ -593,7 +635,7 @@ public class Main {
 
 
             //input of price
-            while (true){
+            while (true) {
                 try {
                     System.out.println("Enter a price (#.##) of product or BACK to cancel");
                     customerInput = input.nextLine().trim().toLowerCase();
@@ -617,7 +659,7 @@ public class Main {
             if (customerInput.equals("yes")) wantAddDescription = true;
             //add description
             if (wantAddDescription) {
-                while (true){
+                while (true) {
                     try {
                         System.out.println("Enter a description to product or write 'BACK' to cancel");
                         customerInput = input.nextLine().trim().toLowerCase();
@@ -639,24 +681,24 @@ public class Main {
 
 
             System.out.println("Choose what type of product it is or write 'BACK' if you want go to the main meny");
-            while (true){
+            while (true) {
 
                 Product.PurchaseTypes[] types = Product.PurchaseTypes.values();
                 try {
                     System.out.println("Press:");
                     for (int i = 0; i < types.length; i++) {
-                        System.out.println(i+1 + ". To count product by " + types[i].value.toUpperCase());
+                        System.out.println(i + 1 + ". To count product by " + types[i].value.toUpperCase());
                     }
                     customerInput = input.nextLine().trim().toLowerCase();
                     if (isCancel(customerInput)) return;
-                    if(!controlMenuNumberInput(customerInput))continue;
-                    if(Integer.parseInt(customerInput)  > types.length ||Integer.parseInt(customerInput)  <= 0) {
+                    if (!controlMenuNumberInput(customerInput)) continue;
+                    if (Integer.parseInt(customerInput) > types.length || Integer.parseInt(customerInput) <= 0) {
                         System.err.println("Value not from list");
                         continue;
                     }
                     type = types[Integer.parseInt(customerInput) - 1];
                     break;
-                }catch (Exception exp ){
+                } catch (Exception exp) {
                     System.err.println(exp.getMessage());
                 }
 
@@ -666,9 +708,9 @@ public class Main {
             //try to create a product
             try {
                 if (!wantAddDescription) {
-                    result = new Product(name, price, category,"", type);
+                    result = new Product(name, price, category, "", type);
                 } else {
-                    result = new Product(name, price, category, description , type);
+                    result = new Product(name, price, category, description, type);
                 }
                 products.add(result);
                 System.out.println("You added a new Product , SUCCESS ");
@@ -680,24 +722,20 @@ public class Main {
         }
     }
 
-    public static void showCategoryProducts() {
-        ArrayList<String> categoties  = Product.getProductCategories();
-        while (true){
+    public static void showProductsOfCategory() {
+        ArrayList<String> categories = Product.getProductCategories();
+        while (true) {
             try {
                 System.out.println("Press : ");
-                for( int i = 0; i < categoties.size(); i++){
-                    System.out.println(i+1 + ". If you want to print "+ categoties.get(i));
+                for (int i = 0; i < categories.size(); i++) {
+                    System.out.println(i + 1 + ". If you want to print " + categories.get(i));
                 }
                 System.out.println("Write 'BACK' if you want go to the main meny");
 
                 String customerInput = input.nextLine().trim().toLowerCase();
                 if (isCancel(customerInput)) break;
-                if(!controlMenuNumberInput(customerInput)) continue;
-                if(Integer.parseInt(customerInput)  > categoties.size() ||Integer.parseInt(customerInput)  <= 0){
-                    System.err.println("Value not from list, try again");
-                    continue;
-                }
-                printProducts(categoties.get((Integer.parseInt(customerInput) - 1)));
+                if (!controlMenuNumberInput(customerInput , categories)) continue;
+                printProducts(categories.get((Integer.parseInt(customerInput) - 1)));
 
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
@@ -706,12 +744,27 @@ public class Main {
 
     }
 
-    public static void printProducts(){
-        if (products.isEmpty()) {System.err.println("product-list is empty");return;}
+    public static void printProducts() {
+        if (products.isEmpty()) {
+            System.err.println("product-list is empty");
+            return;
+        }
 
-            for (Product product : products) {
-                System.out.println(product.toString());
-            }
+        for (Product product : products) {
+            System.out.println(product.toString());
+        }
+
+    }
+    public static void printProductsAdmin() {
+        if (products.isEmpty()) {
+            System.err.println("product-list is empty");
+            return;
+        }
+
+        for (Product product : products) {
+            product.printAdmin();
+            System.out.println();
+        }
 
     }
 
@@ -732,18 +785,18 @@ public class Main {
         if (isEmpty) System.err.println("There are no products of such type yet");
     }
 
-    public static boolean isProductExist(String name){
+    public static boolean isProductAlreadyExist(String name) {
         int index;
-        index = getIndexOfProduct(name);
+        index = getIndexOfProductByName(name);
         if (index > -1) {
             System.err.println("Such element is already existing");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
 
-    public static int getIndexOfProduct( String name) {
+    public static int getIndexOfProductByName(String name) {
         for (int i = 0; i < products.size(); i++) {
             if (products.get(i).getName().equals(name)) return i;
         }
@@ -755,15 +808,35 @@ public class Main {
         return input.equals(submit);
     }
 
-    public static boolean controlMenuNumberInput(String customerInput){
-        try{
+    public static boolean controlMenuNumberInput(String customerInput) {
+        try {
             Integer.parseInt(customerInput);
-        }catch (NumberFormatException  exp){
+        } catch (NumberFormatException exp) {
             System.err.println("Wrong format");
             return false;
         }
         if (customerInput.isEmpty()) {
-            System.err.println("Input can't be empty ,try again");return false;
+            System.err.println("Input can't be empty ,try again");
+            return false;
+        }
+        return true;
+    }
+
+    public static <T> boolean controlMenuNumberInput(String customerInput, ArrayList<T> arr) {
+        int inputInt;
+        try {
+            inputInt = Integer.parseInt(customerInput);
+        } catch (NumberFormatException exp) {
+            System.err.println("Wrong format");
+            return false;
+        }
+        if (customerInput.isEmpty()) {
+            System.err.println("Input can't be empty ,try again");
+            return false;
+        }
+        if (inputInt > arr.size() || inputInt <= 0) {
+            System.err.println("Value not from list");
+            return false;
         }
         return true;
     }
@@ -777,7 +850,7 @@ public class Main {
                 "Description must contain only letters and spaces",
         };
         System.out.println();
-        System.out.println("Check an follow instructions to use ADMINISTRATION_MODE" );
+        System.out.println("Check an follow instructions to use ADMINISTRATION_MODE");
         for (int i = 0; i < instractions.length; i++) {
             System.out.println((i + 1) + ". " + instractions[i]);
         }
@@ -785,7 +858,7 @@ public class Main {
     }
 
 
-    public static ArrayList<Product> searchProducts(boolean print){
+    public static ArrayList<Product> findProducts(boolean print) {
         boolean isfound = false;
         String searchable;
         ArrayList<Product> foundProducts = new ArrayList<>();
@@ -799,38 +872,40 @@ public class Main {
 
             if (isCancel(searchable)) return foundProducts;
             Product.nameValidating(searchable);
-
             for (Product product : products) {
                 if (product.getName().contains(searchable) || product.getDescription().contains(searchable)) {
                     foundProducts.add(product);
-                   if(print) System.out.println(product);
+                    if (print) System.out.println(product);
                     isfound = true;
                 }
             }
             if (!isfound) System.err.println("Such product is not existing");
             return foundProducts;
         } catch (Exception exp) {
+            System.err.println(exp.getMessage());
             return foundProducts;
         }
     }
-    public static void saveProductsToFile() throws FileNotFoundException{
+
+    public static void saveProductsToFile() throws FileNotFoundException {
         createProductsFile();
-        try (FileOutputStream fileOutputStream = new FileOutputStream(PRODUCTS_FILE)){
+        try (FileOutputStream fileOutputStream = new FileOutputStream(PRODUCTS_FILE)) {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(products);
             objectOutputStream.flush();
             objectOutputStream.close();
         } catch (FileNotFoundException e) {
-           throw new FileNotFoundException("File with products is not found");
+            throw new FileNotFoundException("File with products is not found");
         } catch (IOException e) {
             throw new RuntimeException(e.getCause());
         }
 
     }
-    public static boolean readProductsFromFile(){
-        try (FileInputStream  fileInputStream = new FileInputStream(PRODUCTS_FILE)){
+
+    public static boolean readProductsFromFile() {
+        try (FileInputStream fileInputStream = new FileInputStream(PRODUCTS_FILE)) {
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            setProducts((ArrayList)objectInputStream.readObject());
+            setProducts((ArrayList) objectInputStream.readObject());
             objectInputStream.close();
             return true;
         } catch (FileNotFoundException e) {
@@ -840,22 +915,53 @@ public class Main {
             return false;
         }
     }
-    public static void createProductsFile(){
+
+    public static void createProductsFile() {
         Path path = Path.of(PRODUCTS_FILE_PATH);
         Path file = Path.of(PRODUCTS_FILE);
         try {
-            if(!Files.exists(path)) {
+            if (!Files.exists(path)) {
                 Files.createDirectory(path);
             }
-            if (!Files.exists(file)){
+            if (!Files.exists(file)) {
                 Files.createFile(file);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    private static void setProducts(ArrayList<Product> arr){
+
+    private static void setProducts(ArrayList<Product> arr) {
         products = new ArrayList<>(arr);
+    }
+
+    public static int findAndChooseProduct(String massage) {
+        int index;
+        String customerInput;
+        ArrayList<Product> foundProducts = findProducts(false);
+        if (foundProducts.isEmpty()) {
+            return -1;
+        }
+        while (true) {
+            for (int i = 0; i < foundProducts.size(); i++) {
+                System.out.println(i + 1 + ". " + foundProducts.get(i));
+            }
+            try {
+                System.out.println(massage);
+                customerInput = input.nextLine().trim().toLowerCase();
+                if (isCancel(customerInput)) return -1;
+                index = Integer.parseInt(customerInput) - 1;
+            } catch (NumberFormatException exp) {
+                System.err.println("Wrong format, write in a number or 'BACK' to cancel");
+                continue;
+            }
+            if (index < 0 || index >= foundProducts.size()) {
+                System.err.println("wrong input");
+                continue;
+            }
+            return findProductIndex(foundProducts.get(index));
+
+        }
     }
 }
 
