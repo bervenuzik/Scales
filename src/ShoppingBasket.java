@@ -5,9 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 import java.util.LinkedHashMap;
 
-public class ShoppingBasket {
+public final class ShoppingBasket {
     final static String OS_NAME = System.getProperty("os.name");
     final static String USERNAME = System.getProperty("user.name");
     final static String RECEPTS_FILE_PATH = OS_NAME.startsWith("Windows")? "C:\\Scales\\Recepts\\" : "/Users/"+USERNAME+"/Documents/Scales/Recepts/";
@@ -19,7 +20,10 @@ public class ShoppingBasket {
     }
 
     public static ShoppingBasket getInstance (){
-        if (Basket == null) return new ShoppingBasket();
+        if (Basket == null){
+            Basket = new ShoppingBasket();
+            return Basket;
+        }
         return Basket;
     }
 
@@ -27,6 +31,7 @@ public class ShoppingBasket {
         if(basketMap.containsKey(product)) {
             double previousValue = basketMap.get(product);
             basketMap.replace(product,  previousValue  , previousValue +amount);
+
         }else {
             basketMap.put(product, amount);
         }
@@ -118,6 +123,7 @@ public class ShoppingBasket {
         System.out.printf("Total prise to pay : %-7.2f %n", totalPriseToPay);
         System.out.print(ANSI_RESET);
     }
+
 }
 
 

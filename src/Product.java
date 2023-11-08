@@ -1,7 +1,7 @@
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Objects;
+
 
 public class Product implements Serializable {
 
@@ -268,8 +268,8 @@ public class Product implements Serializable {
         if (discount != 0 && promotionAmount == 0 && promotionPrice == 0)
             return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%-5s Discount: %-3d%%" + ANSI_RESET, category, name, price, purchaseType.value, discount);
         if (discount == 0 && promotionAmount != 0 && promotionPrice != 0)
-            return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: %7.2f/%-5s Promotion: %3.2f/%-4s for %-10.2f" + ANSI_RESET, category, name, price, purchaseType.value, promotionAmount, purchaseType.value, promotionPrice);
-        return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-25s\t Price: %7.2f/%-5s" + ANSI_RESET, category, name, price, purchaseType.value);
+            return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%-5s Promotion: %3.2f/%-4s for %-10.2f" + ANSI_RESET, category, name, price, purchaseType.value, promotionAmount, purchaseType.value, promotionPrice);
+        return String.format(ANSI_YELLOW + " Category: %-12s\t Name: %-20s\t Price: %7.2f/%-5s" + ANSI_RESET, category, name, price, purchaseType.value);
     }
 
 
@@ -284,7 +284,7 @@ public class Product implements Serializable {
     public String writeReceptFormat(double amount) {
         double totalPrice = calculatePrice(amount);
         if (discount != 0 && promotionAmount == 0 && promotionPrice == 0) {
-            return String.format("Name: %-20s\t Price: %-7.2f  Discount: %3d%%  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, discount, totalPrice, amount, purchaseType.value);
+            return String.format("Name: %-20s\t Price: %-7.2f\t Discount: %3d%%  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, discount, totalPrice, amount, purchaseType.value);
         }
         if (discount == 0 && promotionAmount != 0 && promotionPrice != 0) {
             return String.format("Name: %-20s\t Price: %-7.2f\t Promotion(pieces): %-3.2f for %-10.2f  Total price: %-10.2f for %7.2f %-7s %n", name, this.price, promotionAmount, promotionPrice, totalPrice, amount, purchaseType.value);
